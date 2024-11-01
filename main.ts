@@ -47,12 +47,16 @@ async function init() {
   const render = await createRenderPipeline(device, context, positionBuffer);
   const compute = await createComputePipeline(device, positionBuffer);
 
-  const frame = () => {
+  let last: DOMHighResTimeStamp | undefined;
+  const frame = (time: number) => {
     requestAnimationFrame(frame);
 
     const encoder = device.createCommandEncoder();
 
-    compute.encode(encoder);
+    const interval = last !== undefined ? (time - last) / 1000 : 0;
+    last = time;
+
+    compute.encode(encoder, interval);
     render.encode(encoder);
 
     queue.submit([encoder.finish()]);
@@ -174,6 +178,11 @@ const createComputePipeline = async (
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
 
+  const uniformBuffer = device.createBuffer({
+    size: Float32Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
   const module = device.createShaderModule({
     code: await (await fetch("compute.wgsl")).text(),
   });
@@ -195,6 +204,11 @@ const createComputePipeline = async (
         visibility: GPUShaderStage.COMPUTE,
         buffer: { type: "storage" },
       },
+      {
+        binding: 3,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "uniform" },
+      },
     ],
   });
 
@@ -214,10 +228,13 @@ const createComputePipeline = async (
       { binding: 0, resource: { buffer: positionBuffer } },
       { binding: 1, resource: { buffer: previousBuffer } },
       { binding: 2, resource: { buffer: forceBuffer } },
+      { binding: 3, resource: { buffer: uniformBuffer } },
     ],
   });
 
-  const encode = (encoder: GPUCommandEncoder) => {
+  const encode = (encoder: GPUCommandEncoder, time: number) => {
+    device.queue.writeBuffer(uniformBuffer, 0, new Float32Array([time]));
+
     const pass = encoder.beginComputePass();
 
     pass.setPipeline(computePipeline);
