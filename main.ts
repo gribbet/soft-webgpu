@@ -159,10 +159,15 @@ const createComputePipeline = async (
 ) => {
   const { size } = positionBuffer;
   const count = size / (Float32Array.BYTES_PER_ELEMENT * 3);
-  const velocityBuffer = device.createBuffer({
-    size,
+
+  const positionData = new Float32Array(positions.flat());
+  const previousBuffer = device.createBuffer({
+    size: positionData.byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    mappedAtCreation: true,
   });
+  new Float32Array(previousBuffer.getMappedRange()).set(positionData);
+  previousBuffer.unmap();
 
   const forceBuffer = device.createBuffer({
     size,
@@ -207,7 +212,7 @@ const createComputePipeline = async (
     layout,
     entries: [
       { binding: 0, resource: { buffer: positionBuffer } },
-      { binding: 1, resource: { buffer: velocityBuffer } },
+      { binding: 1, resource: { buffer: previousBuffer } },
       { binding: 2, resource: { buffer: forceBuffer } },
     ],
   });
