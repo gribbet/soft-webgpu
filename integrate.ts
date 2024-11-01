@@ -1,12 +1,16 @@
 import { positions } from "./model";
 
-export const createComputePipeline = async (
-  device: GPUDevice,
-  positionBuffer: GPUBuffer
-) => {
-  const { size } = positionBuffer;
-  const count = size / (Float32Array.BYTES_PER_ELEMENT * 3);
+const workgroupSize = 1;
 
+export const createIntegratePipeline = async ({
+  device,
+  positionBuffer,
+  forceBuffer,
+}: {
+  device: GPUDevice;
+  positionBuffer: GPUBuffer;
+  forceBuffer: GPUBuffer;
+}) => {
   const positionData = new Float32Array(positions.flat());
   const previousBuffer = device.createBuffer({
     size: positionData.byteLength,
@@ -16,18 +20,13 @@ export const createComputePipeline = async (
   new Float32Array(previousBuffer.getMappedRange()).set(positionData);
   previousBuffer.unmap();
 
-  const forceBuffer = device.createBuffer({
-    size,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-  });
-
   const uniformBuffer = device.createBuffer({
     size: Float32Array.BYTES_PER_ELEMENT,
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
   const module = device.createShaderModule({
-    code: await (await fetch("compute.wgsl")).text(),
+    code: await (await fetch("integrate.wgsl")).text(),
   });
 
   const layout = device.createBindGroupLayout({
@@ -45,7 +44,7 @@ export const createComputePipeline = async (
       {
         binding: 2,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: "storage" },
+        buffer: { type: "read-only-storage" },
       },
       {
         binding: 3,
@@ -55,7 +54,7 @@ export const createComputePipeline = async (
     ],
   });
 
-  const computePipeline = device.createComputePipeline({
+  const pipeline = device.createComputePipeline({
     layout: device.createPipelineLayout({
       bindGroupLayouts: [layout],
     }),
@@ -80,10 +79,10 @@ export const createComputePipeline = async (
 
     const pass = encoder.beginComputePass();
 
-    pass.setPipeline(computePipeline);
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
 
-    const workgroupCount = Math.ceil(count / 64);
+    const workgroupCount = Math.ceil(positions.length / workgroupSize);
     pass.dispatchWorkgroups(workgroupCount);
 
     pass.end();

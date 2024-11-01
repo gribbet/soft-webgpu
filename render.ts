@@ -1,10 +1,14 @@
 import { triangles } from "./model";
 
-export const createRenderPipeline = async (
-  device: GPUDevice,
-  context: GPUCanvasContext,
-  positionBuffer: GPUBuffer
-) => {
+export const createRenderPipeline = async ({
+  device,
+  context,
+  positionBuffer,
+}: {
+  device: GPUDevice;
+  context: GPUCanvasContext;
+  positionBuffer: GPUBuffer;
+}) => {
   const triangleData = new Uint32Array(triangles.flat());
   const triangleBuffer = device.createBuffer({
     size: triangleData.byteLength,
@@ -18,7 +22,7 @@ export const createRenderPipeline = async (
     code: await (await fetch("render.wgsl")).text(),
   });
 
-  const bindGroupLayout = device.createBindGroupLayout({
+  const layout = device.createBindGroupLayout({
     entries: [
       {
         binding: 0,
@@ -37,7 +41,7 @@ export const createRenderPipeline = async (
 
   const pipeline = device.createRenderPipeline({
     layout: device.createPipelineLayout({
-      bindGroupLayouts: [bindGroupLayout],
+      bindGroupLayouts: [layout],
     }),
     vertex: {
       module,
@@ -55,7 +59,7 @@ export const createRenderPipeline = async (
   });
 
   const bindGroup = device.createBindGroup({
-    layout: bindGroupLayout,
+    layout,
     entries: [
       {
         binding: 0,
