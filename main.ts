@@ -44,6 +44,30 @@ async function init() {
   new Float32Array(positionBuffer.getMappedRange()).set(positionData);
   positionBuffer.unmap();
 
+  const render = await createRenderPipeline(device, context, positionBuffer);
+  const compute = await createComputePipeline(device, positionBuffer);
+
+  const frame = () => {
+    requestAnimationFrame(frame);
+
+    const encoder = device.createCommandEncoder();
+
+    compute.encode(encoder);
+    render.encode(encoder);
+
+    queue.submit([encoder.finish()]);
+  };
+
+  requestAnimationFrame(frame);
+}
+
+init();
+
+const createRenderPipeline = async (
+  device: GPUDevice,
+  context: GPUCanvasContext,
+  positionBuffer: GPUBuffer
+) => {
   const triangleData = new Uint32Array(triangles.flat());
   const triangleBuffer = device.createBuffer({
     size: triangleData.byteLength,
@@ -71,6 +95,8 @@ async function init() {
       },
     ],
   });
+
+  const { format } = context.getCurrentTexture();
 
   const pipeline = device.createRenderPipeline({
     layout: device.createPipelineLayout({
@@ -105,17 +131,9 @@ async function init() {
     ],
   });
 
-  const frame = () => {
-    requestAnimationFrame(frame);
-    render();
-  };
-
-  requestAnimationFrame(frame);
-
-  const render = () => {
-    const encoder = device.createCommandEncoder();
-
+  const encode = (encoder: GPUCommandEncoder) => {
     const view = context.getCurrentTexture().createView();
+
     const pass = encoder.beginRenderPass({
       colorAttachments: [
         {
@@ -128,11 +146,83 @@ async function init() {
     });
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.draw(3, 2, 0, 0);
+    pass.draw(3, triangles.length, 0, 0);
     pass.end();
-
-    queue.submit([encoder.finish()]);
   };
-}
 
-init();
+  return { encode };
+};
+
+const createComputePipeline = async (
+  device: GPUDevice,
+  positionBuffer: GPUBuffer
+) => {
+  const { size } = positionBuffer;
+  const count = size / (Float32Array.BYTES_PER_ELEMENT * 3);
+  const velocityBuffer = device.createBuffer({
+    size,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+  });
+
+  const forceBuffer = device.createBuffer({
+    size,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+  });
+
+  const module = device.createShaderModule({
+    code: await (await fetch("compute.wgsl")).text(),
+  });
+
+  const layout = device.createBindGroupLayout({
+    entries: [
+      {
+        binding: 0,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "storage" },
+      },
+      {
+        binding: 1,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "storage" },
+      },
+      {
+        binding: 2,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: { type: "storage" },
+      },
+    ],
+  });
+
+  const computePipeline = device.createComputePipeline({
+    layout: device.createPipelineLayout({
+      bindGroupLayouts: [layout],
+    }),
+    compute: {
+      module,
+      entryPoint: "main",
+    },
+  });
+
+  const bindGroup = device.createBindGroup({
+    layout,
+    entries: [
+      { binding: 0, resource: { buffer: positionBuffer } },
+      { binding: 1, resource: { buffer: velocityBuffer } },
+      { binding: 2, resource: { buffer: forceBuffer } },
+    ],
+  });
+
+  const encode = (encoder: GPUCommandEncoder) => {
+    const pass = encoder.beginComputePass();
+
+    pass.setPipeline(computePipeline);
+    pass.setBindGroup(0, bindGroup);
+
+    const workgroupCount = Math.ceil(count / 64);
+    pass.dispatchWorkgroups(workgroupCount);
+
+    pass.end();
+  };
+
+  return { encode };
+};
