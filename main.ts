@@ -42,11 +42,6 @@ async function init() {
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
 
-  const render = await createRenderPipeline({
-    device,
-    context,
-    positionBuffer,
-  });
   const spring = await createSpringPipeline({
     device,
     positionBuffer,
@@ -57,6 +52,11 @@ async function init() {
     positionBuffer,
     forceBuffer,
   });
+  const render = await createRenderPipeline({
+    device,
+    context,
+    positionBuffer,
+  });
 
   let last: DOMHighResTimeStamp | undefined;
   const frame = (time: number) => {
@@ -64,14 +64,8 @@ async function init() {
 
     const encoder = device.createCommandEncoder();
 
-    const interval = last !== undefined ? (time - last) / 10000 : 0;
+    const interval = last !== undefined ? (time - last) / 1000 : 0;
     last = time;
-
-    device.queue.writeBuffer(
-      forceBuffer,
-      0,
-      new Float32Array(positions.flatMap(() => [0, -1]))
-    );
 
     spring.encode(encoder);
     integrate.encode(encoder, interval);

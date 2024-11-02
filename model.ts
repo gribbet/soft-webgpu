@@ -1,10 +1,10 @@
-const segments = 4;
+const segments = 10;
 
 export const positions = new Array(segments + 1).fill(0).flatMap(
   (_, i) =>
     [
-      [(0.5 * i) / segments, 0],
-      [(0.5 * i) / segments, 0.5 / 2],
+      [(0.5 * i) / segments, 0.0],
+      [(0.5 * i) / segments, 0.5],
     ] satisfies [number, number][]
 );
 
