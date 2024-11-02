@@ -64,7 +64,7 @@ async function init() {
 
     const encoder = device.createCommandEncoder();
 
-    const interval = last !== undefined ? (time - last) / 1000 : 0;
+    const interval = last !== undefined ? (time - last) / 10000 : 0;
     last = time;
 
     device.queue.writeBuffer(

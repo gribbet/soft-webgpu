@@ -1,6 +1,6 @@
 import { positions } from "./model";
 
-const workgroupSize = 1;
+const workgroupSize = 64;
 
 export const createIntegratePipeline = async ({
   device,

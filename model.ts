@@ -1,14 +1,20 @@
-export const positions = [
-  [0, 0.5],
-  [0, 1],
-  [0.5, 0.5],
-  [0.5, 1.0],
-] satisfies [number, number][];
+const segments = 4;
 
-export const triangles = [
-  [0, 2, 1],
-  [1, 2, 3],
-] satisfies [number, number, number][];
+export const positions = new Array(segments + 1).fill(0).flatMap(
+  (_, i) =>
+    [
+      [(0.5 * i) / segments, 0],
+      [(0.5 * i) / segments, 0.5 / 2],
+    ] satisfies [number, number][]
+);
+
+export const triangles = new Array(segments).fill(0).flatMap(
+  (_, i) =>
+    [
+      [i * 2, (i + 1) * 2, (i + 1) * 2 + 1],
+      [i * 2, (i + 1) * 2 + 1, i * 2 + 1],
+    ] satisfies [number, number, number][]
+);
 
 export const adjacencies = Object.fromEntries(
   Object.entries(

@@ -6,11 +6,10 @@
 const n = 8u;
 const k = 100.0;
 
-@compute @workgroup_size(1)
+@compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
     var force = vec2(0.0, 0.0);
-
 
     for (var z = 0u; z < n; z++) {
         let j = adjacencies[i*n + z];
