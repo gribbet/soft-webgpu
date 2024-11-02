@@ -1,4 +1,4 @@
-import { edges, positions } from "./model";
+import { positions } from "./model";
 import { createRenderPipeline } from "./render";
 import { createIntegratePipeline } from "./integrate";
 import { createSpringPipeline } from "./spring";
@@ -70,7 +70,7 @@ async function init() {
     device.queue.writeBuffer(
       forceBuffer,
       0,
-      new Float32Array(positions.flatMap(() => [0, -10]))
+      new Float32Array(positions.flatMap(() => [0, -1]))
     );
 
     spring.encode(encoder);

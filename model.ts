@@ -10,19 +10,22 @@ export const triangles = [
   [1, 2, 3],
 ] satisfies [number, number, number][];
 
-export const edges = Object.values(
-  triangles.reduce<{
-    [key: string]: [a: number, b: number];
-  }>(
-    (acc, [a, b, c]) =>
-      [
-        [a, b],
-        [b, c],
-        [c, a],
-      ].reduce((acc, [a = 0, b = 0]) => {
-        acc[`${a},${b}`] = [a, b];
-        return acc;
-      }, acc),
-    {}
-  )
+export const adjacencies = Object.fromEntries(
+  Object.entries(
+    triangles.reduce<{ [i: number]: Set<number> }>(
+      (acc, [a, b, c]) =>
+        [
+          [a, b],
+          [b, c],
+          [c, a],
+        ].reduce((acc, [a = 0, b = 0]) => {
+          acc[a] = acc[a] ?? new Set<number>();
+          acc[a].add(b);
+          acc[b] = acc[b] ?? new Set<number>();
+          acc[b].add(a);
+          return acc;
+        }, acc),
+      {}
+    )
+  ).map(([i, adjacencies]) => [i, [...adjacencies].sort()])
 );

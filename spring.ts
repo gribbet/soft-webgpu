@@ -1,6 +1,6 @@
-import { edges, positions } from "./model";
+import { adjacencies, positions } from "./model";
 
-const workgroupSize = 64;
+const workgroupSize = 1;
 
 export const createSpringPipeline = async ({
   device,
@@ -11,14 +11,18 @@ export const createSpringPipeline = async ({
   positionBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
-  const edgeData = new Uint32Array(edges.flat());
-  const edgeBuffer = device.createBuffer({
-    size: edgeData.byteLength,
+  const adjacencyData = new Uint32Array(
+    positions.flatMap((_, i) =>
+      new Array(8).fill(0).flatMap((_, j) => adjacencies[i]?.[j] ?? 0xffff)
+    )
+  );
+  const adjacencyBuffer = device.createBuffer({
+    size: adjacencyData.byteLength,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     mappedAtCreation: true,
   });
-  new Uint32Array(edgeBuffer.getMappedRange()).set(edgeData);
-  edgeBuffer.unmap();
+  new Uint32Array(adjacencyBuffer.getMappedRange()).set(adjacencyData);
+  adjacencyBuffer.unmap();
 
   const positionData = new Float32Array(positions.flat());
   const originalBuffer = device.createBuffer({
@@ -74,7 +78,7 @@ export const createSpringPipeline = async ({
       { binding: 0, resource: { buffer: originalBuffer } },
       { binding: 1, resource: { buffer: positionBuffer } },
       { binding: 2, resource: { buffer: forceBuffer } },
-      { binding: 3, resource: { buffer: edgeBuffer } },
+      { binding: 3, resource: { buffer: adjacencyBuffer } },
     ],
   });
 
@@ -84,7 +88,7 @@ export const createSpringPipeline = async ({
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
 
-    const workgroupCount = Math.ceil(edges.length / workgroupSize);
+    const workgroupCount = Math.ceil(positions.length / workgroupSize);
     pass.dispatchWorkgroups(workgroupCount);
 
     pass.end();
