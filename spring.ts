@@ -2,30 +2,15 @@ import { adjacencies, positions } from "./model";
 
 const workgroupSize = 64;
 
-export const createComputePipeline = async ({
+export const createSpringPipeline = async ({
   device,
   positionBuffer,
+  forceBuffer,
 }: {
   device: GPUDevice;
   positionBuffer: GPUBuffer;
+  forceBuffer: GPUBuffer;
 }) => {
-  const positionData = new Float32Array(positions.flat());
-  const previousBuffer = device.createBuffer({
-    size: positionData.byteLength,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    mappedAtCreation: true,
-  });
-  new Float32Array(previousBuffer.getMappedRange()).set(positionData);
-  previousBuffer.unmap();
-
-  const originalBuffer = device.createBuffer({
-    size: positionData.byteLength,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    mappedAtCreation: true,
-  });
-  new Float32Array(originalBuffer.getMappedRange()).set(positionData);
-  originalBuffer.unmap();
-
   const adjacencyData = new Uint32Array(
     positions.flatMap((_, i) =>
       new Array(8).fill(0).flatMap((_, j) => adjacencies[i]?.[j] ?? 0xffff)
@@ -39,13 +24,17 @@ export const createComputePipeline = async ({
   new Uint32Array(adjacencyBuffer.getMappedRange()).set(adjacencyData);
   adjacencyBuffer.unmap();
 
-  const uniformBuffer = device.createBuffer({
-    size: Float32Array.BYTES_PER_ELEMENT,
-    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  const positionData = new Float32Array(positions.flat());
+  const originalBuffer = device.createBuffer({
+    size: positionData.byteLength,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    mappedAtCreation: true,
   });
+  new Float32Array(originalBuffer.getMappedRange()).set(positionData);
+  originalBuffer.unmap();
 
   const module = device.createShaderModule({
-    code: await (await fetch("compute.wgsl")).text(),
+    code: await (await fetch("spring.wgsl")).text(),
   });
 
   const layout = device.createBindGroupLayout({
@@ -53,27 +42,22 @@ export const createComputePipeline = async ({
       {
         binding: 0,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: "storage" },
+        buffer: { type: "read-only-storage" },
       },
       {
         binding: 1,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: "storage" },
+        buffer: { type: "read-only-storage" },
       },
       {
         binding: 2,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: "read-only-storage" },
+        buffer: { type: "storage" },
       },
       {
         binding: 3,
         visibility: GPUShaderStage.COMPUTE,
         buffer: { type: "read-only-storage" },
-      },
-      {
-        binding: 4,
-        visibility: GPUShaderStage.COMPUTE,
-        buffer: { type: "uniform" },
       },
     ],
   });
@@ -91,17 +75,14 @@ export const createComputePipeline = async ({
   const bindGroup = device.createBindGroup({
     layout,
     entries: [
-      { binding: 0, resource: { buffer: positionBuffer } },
-      { binding: 1, resource: { buffer: previousBuffer } },
-      { binding: 2, resource: { buffer: originalBuffer } },
+      { binding: 0, resource: { buffer: originalBuffer } },
+      { binding: 1, resource: { buffer: positionBuffer } },
+      { binding: 2, resource: { buffer: forceBuffer } },
       { binding: 3, resource: { buffer: adjacencyBuffer } },
-      { binding: 4, resource: { buffer: uniformBuffer } },
     ],
   });
 
-  const encode = (encoder: GPUCommandEncoder, time: number) => {
-    device.queue.writeBuffer(uniformBuffer, 0, new Float32Array([time]));
-
+  const encode = (encoder: GPUCommandEncoder) => {
     const pass = encoder.beginComputePass();
 
     pass.setPipeline(pipeline);

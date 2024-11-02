@@ -1,6 +1,7 @@
-import { createComputePipeline } from "./compute";
 import { positions } from "./model";
 import { createRenderPipeline } from "./render";
+import { createIntegratePipeline } from "./integrate";
+import { createSpringPipeline } from "./spring";
 
 async function init() {
   const { gpu } = navigator;
@@ -36,14 +37,25 @@ async function init() {
   new Float32Array(positionBuffer.getMappedRange()).set(positionData);
   positionBuffer.unmap();
 
+  const forceBuffer = device.createBuffer({
+    size: positionData.byteLength,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+  });
+
   const render = await createRenderPipeline({
     device,
     context,
     positionBuffer,
   });
-  const compute = await createComputePipeline({
+  const spring = await createSpringPipeline({
     device,
     positionBuffer,
+    forceBuffer,
+  });
+  const integrate = await createIntegratePipeline({
+    device,
+    positionBuffer,
+    forceBuffer,
   });
 
   let last: DOMHighResTimeStamp | undefined;
@@ -55,7 +67,14 @@ async function init() {
     const interval = last !== undefined ? (time - last) / 10000 : 0;
     last = time;
 
-    compute.encode(encoder, interval);
+    device.queue.writeBuffer(
+      forceBuffer,
+      0,
+      new Float32Array(positions.flatMap(() => [0, -1]))
+    );
+
+    spring.encode(encoder);
+    integrate.encode(encoder, interval);
     render.encode(encoder);
 
     queue.submit([encoder.finish()]);
