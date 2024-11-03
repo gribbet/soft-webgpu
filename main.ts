@@ -67,10 +67,12 @@ async function init() {
     const interval = last !== undefined ? (time - last) / 1000 : 0;
     last = time;
 
-    spring.encode(encoder);
-    integrate.encode(encoder, interval);
+    const steps = 10;
+    for (let i = 0; i < steps; i++) {
+      spring.encode(encoder);
+      integrate.encode(encoder, interval / steps);
+    }
     render.encode(encoder);
-
     queue.submit([encoder.finish()]);
   };
 
