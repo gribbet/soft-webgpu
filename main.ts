@@ -66,7 +66,7 @@ async function init() {
     const interval = last !== undefined ? (time - last) / 1000 : 0;
     last = time;
 
-    const steps = 10;
+    const steps = 32;
     for (let i = 0; i < steps; i++) {
       spring.encode(encoder);
       integrate.encode(encoder, interval / steps);

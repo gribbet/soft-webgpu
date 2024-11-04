@@ -1,6 +1,6 @@
 import { workgroupSize } from "./configuration";
 
-const segments = 5;
+const segments = 10;
 
 export const positions = new Array(segments + 1).fill(0).flatMap(
   (_, i) =>
@@ -43,7 +43,7 @@ const count = workgroupSize * 2 * Math.ceil(positions.length / workgroupSize);
 export const positionData = new Float32Array(count);
 positionData.set(new Float32Array(positions.flat()));
 
-export const adjacencyData = new Uint32Array(count);
+export const adjacencyData = new Uint32Array(count * 8);
 adjacencyData.set(
   positions.flatMap((_, i) =>
     new Array(8).fill(0).flatMap((_, j) => adjacencies[i]?.[j] ?? 0xffff)

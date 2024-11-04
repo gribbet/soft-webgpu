@@ -3,7 +3,7 @@
 @group(0) @binding(2) var<storage, read_write> previouses: array<vec2<f32>>;
 @group(0) @binding(3) var<storage, read> forces: array<vec2<f32>>;
 
-const damping = 0.999;
+const damping = 1.0;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
