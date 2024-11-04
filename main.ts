@@ -17,12 +17,6 @@ async function init() {
   const canvas = document.createElement("canvas");
   document.body.appendChild(canvas);
 
-  new ResizeObserver(([entry]) => {
-    const { width = 0, height = 0 } = entry?.contentRect ?? {};
-    canvas.width = width * devicePixelRatio;
-    canvas.height = height * devicePixelRatio;
-  }).observe(canvas);
-
   const context = canvas.getContext("webgpu");
   if (!context) throw new Error();
 
@@ -31,13 +25,13 @@ async function init() {
 
   const positionBuffer = createBuffer(
     device,
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    GPUBufferUsage.STORAGE,
     positionData
   );
 
   const forceBuffer = device.createBuffer({
     size: positionBuffer.size,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    usage: GPUBufferUsage.STORAGE,
   });
 
   const spring = await createSpringPipeline({
@@ -55,6 +49,13 @@ async function init() {
     context,
     positionBuffer,
   });
+
+  new ResizeObserver(([entry]) => {
+    const { width = 0, height = 0 } = entry?.contentRect ?? {};
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
+    render.aspect = width / height;
+  }).observe(canvas);
 
   let last: DOMHighResTimeStamp | undefined;
   const frame = (time: number) => {

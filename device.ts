@@ -5,7 +5,7 @@ export const createBuffer = (
 ) => {
   const buffer = device.createBuffer({
     size: data.byteLength,
-    usage,
+    usage: usage | GPUBufferUsage.COPY_DST,
     mappedAtCreation: true,
   });
   const Array = data instanceof Uint32Array ? Uint32Array : Float32Array;

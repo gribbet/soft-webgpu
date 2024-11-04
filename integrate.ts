@@ -13,13 +13,13 @@ export const createIntegratePipeline = async ({
 }) => {
   const previousBuffer = createBuffer(
     device,
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    GPUBufferUsage.STORAGE,
     positionData
   );
 
   const timeBuffer = createBuffer(
     device,
-    GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    GPUBufferUsage.UNIFORM,
     new Float32Array([0])
   );
 
@@ -36,10 +36,10 @@ export const createIntegratePipeline = async ({
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
+    timeBuffer,
     positionBuffer,
     previousBuffer,
     forceBuffer,
-    timeBuffer,
   ]);
 
   const encode = (encoder: GPUCommandEncoder, time: number) => {

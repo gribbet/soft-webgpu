@@ -12,8 +12,14 @@ export const createRenderPipeline = async ({
 }) => {
   const triangleBuffer = createBuffer(
     device,
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    GPUBufferUsage.STORAGE,
     triangleData
+  );
+
+  const aspectBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Float32Array([1.0])
   );
 
   const module = device.createShaderModule({
@@ -40,6 +46,7 @@ export const createRenderPipeline = async ({
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
+    aspectBuffer,
     positionBuffer,
     triangleBuffer,
   ]);
@@ -63,5 +70,10 @@ export const createRenderPipeline = async ({
     pass.end();
   };
 
-  return { encode };
+  return {
+    set aspect(_: number) {
+      device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([_]));
+    },
+    encode,
+  };
 };

@@ -13,13 +13,13 @@ export const createSpringPipeline = async ({
 }) => {
   const adjacencyBuffer = createBuffer(
     device,
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    GPUBufferUsage.STORAGE,
     adjacencyData
   );
 
   const originalBuffer = createBuffer(
     device,
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    GPUBufferUsage.STORAGE,
     positionData
   );
 
