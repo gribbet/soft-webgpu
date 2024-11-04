@@ -1,4 +1,5 @@
-import { triangles } from "./model";
+import { bindGroupFromBuffers, createBuffer } from "./device";
+import { triangleData, triangles } from "./model";
 
 export const createRenderPipeline = async ({
   device,
@@ -9,40 +10,20 @@ export const createRenderPipeline = async ({
   context: GPUCanvasContext;
   positionBuffer: GPUBuffer;
 }) => {
-  const triangleData = new Uint32Array(triangles.flat());
-  const triangleBuffer = device.createBuffer({
-    size: triangleData.byteLength,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    mappedAtCreation: true,
-  });
-  new Uint32Array(triangleBuffer.getMappedRange()).set(triangleData);
-  triangleBuffer.unmap();
+  const triangleBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    triangleData
+  );
 
   const module = device.createShaderModule({
     code: await (await fetch("render.wgsl")).text(),
   });
 
-  const layout = device.createBindGroupLayout({
-    entries: [
-      {
-        binding: 0,
-        visibility: GPUShaderStage.VERTEX,
-        buffer: { type: "read-only-storage" },
-      },
-      {
-        binding: 1,
-        visibility: GPUShaderStage.VERTEX,
-        buffer: { type: "read-only-storage" },
-      },
-    ],
-  });
-
   const { format } = context.getCurrentTexture();
 
   const pipeline = device.createRenderPipeline({
-    layout: device.createPipelineLayout({
-      bindGroupLayouts: [layout],
-    }),
+    layout: "auto",
     vertex: {
       module,
       entryPoint: "vertex",
@@ -58,19 +39,10 @@ export const createRenderPipeline = async ({
     },
   });
 
-  const bindGroup = device.createBindGroup({
-    layout,
-    entries: [
-      {
-        binding: 0,
-        resource: { buffer: positionBuffer },
-      },
-      {
-        binding: 1,
-        resource: { buffer: triangleBuffer },
-      },
-    ],
-  });
+  const bindGroup = bindGroupFromBuffers(device, pipeline, [
+    positionBuffer,
+    triangleBuffer,
+  ]);
 
   const encode = (encoder: GPUCommandEncoder) => {
     const view = context.getCurrentTexture().createView();

@@ -1,6 +1,7 @@
-import { positions } from "./model";
-import { createRenderPipeline } from "./render";
+import { createBuffer } from "./device";
 import { createIntegratePipeline } from "./integrate";
+import { positionData } from "./model";
+import { createRenderPipeline } from "./render";
 import { createSpringPipeline } from "./spring";
 
 async function init() {
@@ -28,17 +29,14 @@ async function init() {
   const format = gpu.getPreferredCanvasFormat();
   context.configure({ device, format });
 
-  const positionData = new Float32Array(positions.flat());
-  const positionBuffer = device.createBuffer({
-    size: positionData.byteLength,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-    mappedAtCreation: true,
-  });
-  new Float32Array(positionBuffer.getMappedRange()).set(positionData);
-  positionBuffer.unmap();
+  const positionBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    positionData
+  );
 
   const forceBuffer = device.createBuffer({
-    size: positionData.byteLength,
+    size: positionBuffer.size,
     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
   });
 

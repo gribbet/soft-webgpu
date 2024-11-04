@@ -4,11 +4,12 @@
 @group(0) @binding(3) var<storage, read> adjacencies: array<u32>;
 
 const n = 8u;
-const k = 2000.0;
+const k = 10000.0;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
+
     var force = vec2(0.0, -1.0);
 
     for (var z = 0u; z < n; z++) {
@@ -25,4 +26,8 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
 
     forces[i] = force;
+
+    if (i == 0) {
+        forces[i] += 100.0 * (vec2(0, 0.5) - positions[i]);
+    }
 }
