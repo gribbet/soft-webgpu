@@ -1,7 +1,7 @@
-import { workgroupSize } from "./configuration";
+import { n, workgroupSize } from "./configuration";
 
-const segmentsX = 10;
-const segmentsY = 4;
+const segmentsX = 20;
+const segmentsY = 20;
 
 export const positions = new Array(segmentsY + 1)
   .fill(0)
@@ -10,7 +10,7 @@ export const positions = new Array(segmentsY + 1)
       .fill(0)
       .map(
         (_, i) =>
-          [(0.5 * i) / segmentsX, (0.5 * j) / segmentsX] satisfies [
+          [(0.5 * i) / segmentsX / 2, (0.5 * j) / segmentsX / 2] satisfies [
             number,
             number
           ]
@@ -35,36 +35,43 @@ export const triangles = new Array(segmentsX).fill(0).flatMap((_, i) =>
   )
 );
 
-export const adjacencies = Object.fromEntries(
-  Object.entries(
-    triangles.reduce<{ [i: number]: Set<number> }>(
-      (acc, [a, b, c]) =>
-        [
-          [a, b],
-          [b, c],
-          [c, a],
-        ].reduce((acc, [a = 0, b = 0]) => {
-          acc[a] = acc[a] ?? new Set<number>();
-          acc[a].add(b);
-          acc[b] = acc[b] ?? new Set<number>();
-          acc[b].add(a);
-          return acc;
-        }, acc),
-      {}
-    )
-  ).map(([i, adjacencies]) => [i, [...adjacencies].sort()])
-);
+const adjacencies = positions.reduce<{ [i: number]: number[] }>((acc, _, i) => {
+  const edges = triangles
+    .filter((_) => _.includes(i))
+    .map<[number, number]>(([a, b, c]) =>
+      a === i ? [b, c] : b === i ? [c, a] : [a, b]
+    );
+  const result: number[] = [];
+  for (;;) {
+    const next = edges.pop();
+    if (!next) break;
+    const [a, b] = next;
+    if (result.length === 0) result.push(a, b);
+    else if (result[0] === b) result.splice(0, 0, a);
+    else if (result[result.length - 1] === a) result.push(b);
+    else edges.unshift(next);
+  }
+  acc[i] = result;
+  return acc;
+}, {});
 
-const count = workgroupSize * 2 * Math.ceil(positions.length / workgroupSize);
+const count = workgroupSize * Math.ceil(positions.length / workgroupSize);
 
-export const positionData = new Float32Array(count);
+export const positionData = new Float32Array(count * 2);
 positionData.set(new Float32Array(positions.flat()));
 
-export const adjacencyData = new Uint32Array(count * 8);
-adjacencyData.set(
-  positions.flatMap((_, i) =>
-    new Array(8).fill(0).flatMap((_, j) => adjacencies[i]?.[j] ?? 0xffff)
-  )
-);
-
 export const triangleData = new Uint32Array(triangles.flat());
+
+export const adjacencyData = new Uint32Array(count * n * 2);
+adjacencyData.fill(0xffff);
+adjacencyData.set(
+  positions.flatMap((_, i) => {
+    const values = adjacencies[i] ?? [];
+    return new Array(n)
+      .fill(0)
+      .flatMap((_, j) => [
+        (j === 0 || values[j] !== values[0] ? values[j] : undefined) ?? 0xffff,
+        values[j + 1] ?? 0xffff,
+      ]);
+  })
+);

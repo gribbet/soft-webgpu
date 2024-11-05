@@ -1,6 +1,6 @@
 import { workgroupSize } from "./configuration";
 import { bindGroupFromBuffers, createBuffer } from "./device";
-import { adjacencies, adjacencyData, positionData, positions } from "./model";
+import { adjacencyData, positionData, positions } from "./model";
 
 export const createForcesPipeline = async ({
   device,
@@ -16,7 +16,6 @@ export const createForcesPipeline = async ({
     GPUBufferUsage.STORAGE,
     adjacencyData
   );
-
   const originalBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
@@ -38,8 +37,8 @@ export const createForcesPipeline = async ({
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
     originalBuffer,
     positionBuffer,
-    forceBuffer,
     adjacencyBuffer,
+    forceBuffer,
   ]);
 
   const encode = (encoder: GPUCommandEncoder) => {

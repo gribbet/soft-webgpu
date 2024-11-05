@@ -1,8 +1,8 @@
 import { createBuffer } from "./device";
+import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
 import { positionData } from "./model";
 import { createRenderPipeline } from "./render";
-import { createForcesPipeline } from "./forces";
 
 async function init() {
   const { gpu } = navigator;
@@ -66,7 +66,7 @@ async function init() {
     const interval = last !== undefined ? (time - last) / 1000 : 0;
     last = time;
 
-    const steps = 32;
+    const steps = 64;
     for (let i = 0; i < steps; i++) {
       forces.encode(encoder);
       integrate.encode(encoder, interval / steps);
