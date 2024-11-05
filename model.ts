@@ -2,20 +2,36 @@ import { workgroupSize } from "./configuration";
 
 const segments = 10;
 
-export const positions = new Array(segments + 1).fill(0).flatMap(
-  (_, i) =>
-    [
-      [(0.5 * i) / segments, 0],
-      [(0.5 * i) / segments, 0.1],
-    ] satisfies [number, number][]
-);
+export const positions = new Array(segments + 1)
+  .fill(0)
+  .flatMap((_, j) =>
+    new Array(segments + 1)
+      .fill(0)
+      .map(
+        (_, i) =>
+          [(0.5 * i) / segments, (0.5 * j) / segments] satisfies [
+            number,
+            number
+          ]
+      )
+  );
 
-export const triangles = new Array(segments).fill(0).flatMap(
-  (_, i) =>
-    [
-      [i * 2, (i + 1) * 2, (i + 1) * 2 + 1],
-      [i * 2, (i + 1) * 2 + 1, i * 2 + 1],
-    ] satisfies [number, number, number][]
+export const triangles = new Array(segments).fill(0).flatMap((_, i) =>
+  new Array(segments).fill(0).flatMap(
+    (_, j) =>
+      [
+        [
+          j * (segments + 1) + i,
+          j * (segments + 1) + i + 1,
+          (j + 1) * (segments + 1) + i + 1,
+        ],
+        [
+          j * (segments + 1) + i,
+          (j + 1) * (segments + 1) + i + 1,
+          (j + 1) * (segments + 1) + i,
+        ],
+      ] satisfies [number, number, number][]
+  )
 );
 
 export const adjacencies = Object.fromEntries(
