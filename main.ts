@@ -2,7 +2,7 @@ import { createBuffer } from "./device";
 import { createIntegratePipeline } from "./integrate";
 import { positionData } from "./model";
 import { createRenderPipeline } from "./render";
-import { createSpringPipeline } from "./spring";
+import { createForcesPipeline } from "./forces";
 
 async function init() {
   const { gpu } = navigator;
@@ -34,7 +34,7 @@ async function init() {
     usage: GPUBufferUsage.STORAGE,
   });
 
-  const spring = await createSpringPipeline({
+  const forces = await createForcesPipeline({
     device,
     positionBuffer,
     forceBuffer,
@@ -68,7 +68,7 @@ async function init() {
 
     const steps = 32;
     for (let i = 0; i < steps; i++) {
-      spring.encode(encoder);
+      forces.encode(encoder);
       integrate.encode(encoder, interval / steps);
     }
     render.encode(encoder);

@@ -2,7 +2,7 @@ import { workgroupSize } from "./configuration";
 import { bindGroupFromBuffers, createBuffer } from "./device";
 import { adjacencies, adjacencyData, positionData, positions } from "./model";
 
-export const createSpringPipeline = async ({
+export const createForcesPipeline = async ({
   device,
   positionBuffer,
   forceBuffer,
@@ -24,7 +24,7 @@ export const createSpringPipeline = async ({
   );
 
   const module = device.createShaderModule({
-    code: await (await fetch("spring.wgsl")).text(),
+    code: await (await fetch("forces.wgsl")).text(),
   });
 
   const pipeline = device.createComputePipeline({
