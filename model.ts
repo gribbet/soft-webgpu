@@ -1,34 +1,35 @@
 import { workgroupSize } from "./configuration";
 
-const segments = 10;
+const segmentsX = 10;
+const segmentsY = 4;
 
-export const positions = new Array(segments + 1)
+export const positions = new Array(segmentsY + 1)
   .fill(0)
   .flatMap((_, j) =>
-    new Array(segments + 1)
+    new Array(segmentsX + 1)
       .fill(0)
       .map(
         (_, i) =>
-          [(0.5 * i) / segments, (0.5 * j) / segments] satisfies [
+          [(0.5 * i) / segmentsX, (0.5 * j) / segmentsX] satisfies [
             number,
             number
           ]
       )
   );
 
-export const triangles = new Array(segments).fill(0).flatMap((_, i) =>
-  new Array(segments).fill(0).flatMap(
+export const triangles = new Array(segmentsX).fill(0).flatMap((_, i) =>
+  new Array(segmentsY).fill(0).flatMap(
     (_, j) =>
       [
         [
-          j * (segments + 1) + i,
-          j * (segments + 1) + i + 1,
-          (j + 1) * (segments + 1) + i + 1,
+          j * (segmentsX + 1) + i,
+          j * (segmentsX + 1) + i + 1,
+          (j + 1) * (segmentsX + 1) + i + 1,
         ],
         [
-          j * (segments + 1) + i,
-          (j + 1) * (segments + 1) + i + 1,
-          (j + 1) * (segments + 1) + i,
+          j * (segmentsX + 1) + i,
+          (j + 1) * (segmentsX + 1) + i + 1,
+          (j + 1) * (segmentsX + 1) + i,
         ],
       ] satisfies [number, number, number][]
   )

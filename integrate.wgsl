@@ -15,7 +15,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     var position = current + damping * (current - previous) + force * time * time;
 
-    const floor = -0.5;
+    const floor = -0.25;
     if (position.y < floor) {
         position.y = 2.0 * floor - position.y;
     } 
