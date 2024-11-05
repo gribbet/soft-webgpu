@@ -15,8 +15,9 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     var position = current + damping * (current - previous) + force * time * time;
 
-    if (position.y < 0) {
-        position.y = 0;
+    const floor = -0.5;
+    if (position.y < floor) {
+        position.y = 2.0 * floor - position.y;
     } 
 
     previouses[i] = current;
