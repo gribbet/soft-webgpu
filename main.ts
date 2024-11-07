@@ -1,15 +1,11 @@
 import { createBackgroundPipeline } from "./background";
+import { boundaryData, positionData } from "./data";
 import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
-import { boundaryData, positionData } from "./model";
 import { createRenderPipeline } from "./render";
 
 /*
- Antialias
- Split boundary WGSL
- Refactor buffers
- Move data
  0xffff
  Collision detection
  */
@@ -43,14 +39,16 @@ async function init() {
     GPUBufferUsage.STORAGE,
     positionData
   );
-  const boundaryBuffer = device.createBuffer({
-    size: 20 * Float32Array.BYTES_PER_ELEMENT,
-    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-  });
-  const forceBuffer = device.createBuffer({
-    size: positionBuffer.size,
-    usage: GPUBufferUsage.STORAGE,
-  });
+  const boundaryBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE,
+    boundaryData(0)
+  );
+  const forceBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE,
+    positionData.map((_) => 0)
+  );
 
   const forces = await createForcesPipeline({
     device,
@@ -91,19 +89,7 @@ async function init() {
     const interval = last !== undefined ? (time - last) / 1000 : 0;
     last = time;
 
-    queue.writeBuffer(
-      boundaryBuffer,
-      0,
-      boundaryData(
-        [0, 1, 2, 3, 4].map((i) => {
-          const a = time / 10000 + (2 * (i * Math.PI)) / 5;
-          return {
-            normal: [Math.cos(a), Math.sin(a)],
-            offset: -0.5,
-          };
-        })
-      )
-    );
+    queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
 
     const encoder = device.createCommandEncoder();
 

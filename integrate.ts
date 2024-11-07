@@ -1,6 +1,7 @@
 import { workgroupSize } from "./configuration";
+import { positionData } from "./data";
 import { bindGroupFromBuffers, createBuffer } from "./device";
-import { positionData, positions } from "./model";
+import { positions } from "./model";
 
 export const createIntegratePipeline = async ({
   device,

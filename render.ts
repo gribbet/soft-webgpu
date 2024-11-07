@@ -1,5 +1,6 @@
+import { triangleData } from "./data";
 import { bindGroupFromBuffers, createBuffer } from "./device";
-import { triangleData, triangles } from "./model";
+import { triangles } from "./model";
 
 export const createRenderPipeline = async ({
   device,

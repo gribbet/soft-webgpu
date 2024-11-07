@@ -1,6 +1,7 @@
 import { workgroupSize } from "./configuration";
+import { adjacencyData, positionData } from "./data";
 import { bindGroupFromBuffers, createBuffer } from "./device";
-import { adjacencyData, positionData, positions } from "./model";
+import { positions } from "./model";
 
 export const createForcesPipeline = async ({
   device,
