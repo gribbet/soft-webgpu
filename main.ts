@@ -78,8 +78,8 @@ async function init() {
 
   new ResizeObserver(([entry]) => {
     const { width = 0, height = 0 } = entry?.contentRect ?? {};
-    canvas.width = width * devicePixelRatio;
-    canvas.height = height * devicePixelRatio;
+    canvas.width = width * devicePixelRatio * 2;
+    canvas.height = height * devicePixelRatio * 2;
     const aspect = width / height;
     device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([aspect]));
   }).observe(canvas);
