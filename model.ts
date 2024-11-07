@@ -10,10 +10,10 @@ export const positions = new Array(segmentsY + 1)
       .fill(0)
       .map(
         (_, i) =>
-          [(0.5 * i) / segmentsX / 2, (0.5 * j) / segmentsX / 2] satisfies [
-            number,
-            number
-          ]
+          [
+            0.25 * (i / segmentsX - 0.5),
+            0.25 * (j / segmentsX - 0.5),
+          ] satisfies [number, number]
       )
   );
 
