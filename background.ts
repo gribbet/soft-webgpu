@@ -1,31 +1,27 @@
 import { bindGroupFromBuffers, createBuffer } from "./device";
 
+const corners = [
+  [-1, -1],
+  [1, -1],
+  [-1, 1],
+  [1, 1],
+] satisfies [number, number][];
+
 export const createBackgroundPipeline = async ({
   device,
   format,
+  aspectBuffer,
   boundaryBuffer,
 }: {
   device: GPUDevice;
   format: GPUTextureFormat;
+  aspectBuffer: GPUBuffer;
   boundaryBuffer: GPUBuffer;
 }) => {
-  const corners = [
-    [-1, -1],
-    [1, -1],
-    [-1, 1],
-    [1, 1],
-  ] satisfies [number, number][];
-
   const positionBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
     new Float32Array(corners.flat())
-  );
-
-  const aspectBuffer = createBuffer(
-    device,
-    GPUBufferUsage.UNIFORM,
-    new Float32Array([1.0])
   );
 
   const module = device.createShaderModule({
@@ -61,9 +57,6 @@ export const createBackgroundPipeline = async ({
   };
 
   return {
-    set aspect(_: number) {
-      device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([_]));
-    },
     encode,
   };
 };

@@ -33,6 +33,11 @@ async function init() {
   const format = gpu.getPreferredCanvasFormat();
   context.configure({ device, format });
 
+  const aspectBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Float32Array([1.0])
+  );
   const positionBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
@@ -61,11 +66,13 @@ async function init() {
   const background = await createBackgroundPipeline({
     device,
     format,
+    aspectBuffer,
     boundaryBuffer,
   });
   const render = await createRenderPipeline({
     device,
     format,
+    aspectBuffer,
     positionBuffer,
   });
 
@@ -73,8 +80,8 @@ async function init() {
     const { width = 0, height = 0 } = entry?.contentRect ?? {};
     canvas.width = width * devicePixelRatio;
     canvas.height = height * devicePixelRatio;
-    background.aspect = width / height;
-    render.aspect = width / height;
+    const aspect = width / height;
+    device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([aspect]));
   }).observe(canvas);
 
   let last: number | undefined;

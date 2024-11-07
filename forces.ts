@@ -11,15 +11,15 @@ export const createForcesPipeline = async ({
   positionBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
-  const adjacencyBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    adjacencyData
-  );
   const originalBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
     positionData
+  );
+  const adjacencyBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE,
+    adjacencyData
   );
 
   const module = device.createShaderModule({

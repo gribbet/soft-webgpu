@@ -4,22 +4,18 @@ import { triangleData, triangles } from "./model";
 export const createRenderPipeline = async ({
   device,
   format,
+  aspectBuffer,
   positionBuffer,
 }: {
   device: GPUDevice;
   format: GPUTextureFormat;
+  aspectBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
 }) => {
   const triangleBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
     triangleData
-  );
-
-  const aspectBuffer = createBuffer(
-    device,
-    GPUBufferUsage.UNIFORM,
-    new Float32Array([1.0])
   );
 
   const module = device.createShaderModule({
@@ -55,9 +51,6 @@ export const createRenderPipeline = async ({
   };
 
   return {
-    set aspect(_: number) {
-      device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([_]));
-    },
     encode,
   };
 };
