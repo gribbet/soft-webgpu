@@ -17,12 +17,12 @@ export const createIntegratePipeline = async ({
   const timeBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
-    new Float32Array([0])
+    new Float32Array([0]),
   );
   const previousBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    positionData
+    positionData,
   );
 
   const module = device.createShaderModule({

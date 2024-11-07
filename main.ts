@@ -8,12 +8,12 @@ import { createRenderPipeline } from "./render";
 /*
  Collision detection
  interactivity
+ Penalty collision
+ Lint
  */
 
-async function init() {
+const init = async () => {
   const { gpu } = navigator;
-  if (!gpu) throw new Error();
-
   const adapter = await gpu.requestAdapter();
   if (!adapter) throw new Error();
   const device = await adapter.requestDevice();
@@ -32,22 +32,22 @@ async function init() {
   const aspectBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
-    new Float32Array([1.0])
+    new Float32Array([1.0]),
   );
   const positionBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    positionData
+    positionData,
   );
   const boundaryBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    boundaryData(0)
+    boundaryData(0),
   );
   const forceBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    positionData.map((_) => 0)
+    positionData.map(() => 0),
   );
 
   const forces = await createForcesPipeline({
@@ -111,6 +111,6 @@ async function init() {
   };
 
   requestAnimationFrame(frame);
-}
+};
 
-init();
+void init();

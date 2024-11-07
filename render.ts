@@ -16,7 +16,7 @@ export const createRenderPipeline = async ({
   const triangleBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    triangleData
+    triangleData,
   );
 
   const module = device.createShaderModule({

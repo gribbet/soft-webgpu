@@ -1,7 +1,7 @@
 export const createBuffer = (
   device: GPUDevice,
   usage: GPUBufferUsageFlags,
-  data: ArrayLike<number> & ArrayBuffer
+  data: ArrayLike<number> & ArrayBuffer,
 ) => {
   const buffer = device.createBuffer({
     size: data.byteLength,
@@ -17,7 +17,7 @@ export const createBuffer = (
 export const bindGroupFromBuffers = (
   device: GPUDevice,
   pipeline: GPUPipelineBase,
-  buffers: GPUBuffer[]
+  buffers: GPUBuffer[],
 ) =>
   device.createBindGroup({
     layout: pipeline.getBindGroupLayout(0),

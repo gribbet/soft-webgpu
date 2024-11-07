@@ -10,10 +10,10 @@ export const triangleData = new Uint32Array(triangles.flat());
 
 const adjacencies = positions.reduce<{ [i: number]: number[] }>((acc, _, i) => {
   const edges = triangles
-    .filter((_) => _.includes(i))
-    .map<[number, number]>(([a, b, c]) =>
-      a === i ? [b, c] : b === i ? [c, a] : [a, b]
-    );
+    .filter(_ => _.includes(i))
+    .map<
+      [number, number]
+    >(([a, b, c]) => (a === i ? [b, c] : b === i ? [c, a] : [a, b]));
   const result: number[] = [];
   for (;;) {
     const next = edges.pop();
@@ -40,7 +40,7 @@ adjacencyData.set(
           0xffffffff,
         values[j + 1] ?? 0xffffffff,
       ]);
-  })
+  }),
 );
 
 export const boundaryData = (time: number) =>
@@ -54,5 +54,5 @@ export const boundaryData = (time: number) =>
           offset: -0.5,
         };
       })
-      .flatMap(({ normal: [nx = 0, ny = 0], offset }) => [nx, ny, offset, 0])
+      .flatMap(({ normal: [nx = 0, ny = 0], offset }) => [nx, ny, offset, 0]),
   );

@@ -15,8 +15,8 @@ export const positions = new Array(segmentsY + 1)
           [
             width * (i / segmentsX - 0.5),
             height * (j / segmentsY - 0.5),
-          ] satisfies [number, number]
-      )
+          ] satisfies [number, number],
+      ),
   );
 
 export const triangles = new Array(segmentsX).fill(0).flatMap((_, i) =>
@@ -33,6 +33,6 @@ export const triangles = new Array(segmentsX).fill(0).flatMap((_, i) =>
           (j + 1) * (segmentsX + 1) + i + 1,
           (j + 1) * (segmentsX + 1) + i,
         ],
-      ] satisfies [number, number, number][]
-  )
+      ] satisfies [number, number, number][],
+  ),
 );

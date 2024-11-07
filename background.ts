@@ -21,7 +21,7 @@ export const createBackgroundPipeline = async ({
   const positionBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    new Float32Array(corners.flat())
+    new Float32Array(corners.flat()),
   );
 
   const module = device.createShaderModule({
