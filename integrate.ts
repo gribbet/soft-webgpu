@@ -5,22 +5,23 @@ import { positionData, positions } from "./model";
 export const createIntegratePipeline = async ({
   device,
   positionBuffer,
+  boundaryBuffer,
   forceBuffer,
 }: {
   device: GPUDevice;
   positionBuffer: GPUBuffer;
+  boundaryBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
-  const previousBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    positionData
-  );
-
   const timeBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
     new Float32Array([0])
+  );
+  const previousBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE,
+    positionData
   );
 
   const module = device.createShaderModule({
@@ -37,6 +38,7 @@ export const createIntegratePipeline = async ({
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
     timeBuffer,
+    boundaryBuffer,
     positionBuffer,
     previousBuffer,
     forceBuffer,

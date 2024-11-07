@@ -1,8 +1,18 @@
+import { createBackgroundPipeline } from "./background";
 import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
-import { positionData } from "./model";
+import { boundaryData, positionData } from "./model";
 import { createRenderPipeline } from "./render";
+
+/*
+ Antialias
+ Split boundary WGSL
+ Refactor buffers
+ Move data
+ 0xffff
+ Collision detection
+ */
 
 async function init() {
   const { gpu } = navigator;
@@ -28,7 +38,10 @@ async function init() {
     GPUBufferUsage.STORAGE,
     positionData
   );
-
+  const boundaryBuffer = device.createBuffer({
+    size: 20 * Float32Array.BYTES_PER_ELEMENT,
+    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+  });
   const forceBuffer = device.createBuffer({
     size: positionBuffer.size,
     usage: GPUBufferUsage.STORAGE,
@@ -42,11 +55,17 @@ async function init() {
   const integrate = await createIntegratePipeline({
     device,
     positionBuffer,
+    boundaryBuffer,
     forceBuffer,
+  });
+  const background = await createBackgroundPipeline({
+    device,
+    format,
+    boundaryBuffer,
   });
   const render = await createRenderPipeline({
     device,
-    context,
+    format,
     positionBuffer,
   });
 
@@ -54,24 +73,53 @@ async function init() {
     const { width = 0, height = 0 } = entry?.contentRect ?? {};
     canvas.width = width * devicePixelRatio;
     canvas.height = height * devicePixelRatio;
+    background.aspect = width / height;
     render.aspect = width / height;
   }).observe(canvas);
 
-  let last: DOMHighResTimeStamp | undefined;
+  let last: number | undefined;
   const frame = (time: number) => {
     requestAnimationFrame(frame);
 
-    const encoder = device.createCommandEncoder();
-
     const interval = last !== undefined ? (time - last) / 1000 : 0;
     last = time;
+
+    queue.writeBuffer(
+      boundaryBuffer,
+      0,
+      boundaryData(
+        [0, 1, 2, 3, 4].map((i) => {
+          const a = time / 10000 + (2 * (i * Math.PI)) / 5;
+          return {
+            normal: [Math.cos(a), Math.sin(a)],
+            offset: -0.5,
+          };
+        })
+      )
+    );
+
+    const encoder = device.createCommandEncoder();
 
     const steps = 64;
     for (let i = 0; i < steps; i++) {
       forces.encode(encoder);
       integrate.encode(encoder, interval / steps);
     }
-    render.encode(encoder);
+
+    const view = context.getCurrentTexture().createView();
+    const pass = encoder.beginRenderPass({
+      colorAttachments: [
+        {
+          view,
+          loadOp: "clear",
+          storeOp: "store",
+        },
+      ],
+    });
+    background.encode(pass);
+    render.encode(pass);
+    pass.end();
+
     queue.submit([encoder.finish()]);
   };
 

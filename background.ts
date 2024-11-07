@@ -1,19 +1,25 @@
 import { bindGroupFromBuffers, createBuffer } from "./device";
-import { triangleData, triangles } from "./model";
 
-export const createRenderPipeline = async ({
+export const createBackgroundPipeline = async ({
   device,
   format,
-  positionBuffer,
+  boundaryBuffer,
 }: {
   device: GPUDevice;
   format: GPUTextureFormat;
-  positionBuffer: GPUBuffer;
+  boundaryBuffer: GPUBuffer;
 }) => {
-  const triangleBuffer = createBuffer(
+  const corners = [
+    [-1, -1],
+    [1, -1],
+    [-1, 1],
+    [1, 1],
+  ] satisfies [number, number][];
+
+  const positionBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    triangleData
+    new Float32Array(corners.flat())
   );
 
   const aspectBuffer = createBuffer(
@@ -23,7 +29,7 @@ export const createRenderPipeline = async ({
   );
 
   const module = device.createShaderModule({
-    code: await (await fetch("render.wgsl")).text(),
+    code: await (await fetch("background.wgsl")).text(),
   });
 
   const pipeline = device.createRenderPipeline({
@@ -38,20 +44,20 @@ export const createRenderPipeline = async ({
       targets: [{ format }],
     },
     primitive: {
-      topology: "triangle-list",
+      topology: "triangle-strip",
     },
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
     aspectBuffer,
     positionBuffer,
-    triangleBuffer,
+    boundaryBuffer,
   ]);
 
   const encode = (pass: GPURenderPassEncoder) => {
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.draw(3, triangles.length, 0, 0);
+    pass.draw(4);
   };
 
   return {

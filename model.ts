@@ -75,3 +75,10 @@ adjacencyData.set(
       ]);
   })
 );
+
+export const boundaryData = (
+  boundaries: { normal: [number, number]; offset: number }[]
+) =>
+  new Float32Array(
+    boundaries.flatMap(({ normal: [nx, ny], offset }) => [nx, ny, offset, 0])
+  );
