@@ -7,6 +7,7 @@ import { createRenderPipeline } from "./render";
 
 /*
  Collision detection
+ interactivity
  */
 
 async function init() {
@@ -85,14 +86,14 @@ async function init() {
   const frame = (time: number) => {
     requestAnimationFrame(frame);
 
-    const interval = last !== undefined ? (time - last) / 1000 : 0;
+    const interval = (time - (last ?? time)) / 1000;
     last = time;
 
     queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
 
     const encoder = device.createCommandEncoder();
 
-    const steps = 64;
+    const steps = 50;
     for (let i = 0; i < steps; i++) {
       forces.encode(encoder);
       integrate.encode(encoder, interval / steps);
@@ -100,13 +101,7 @@ async function init() {
 
     const view = context.getCurrentTexture().createView();
     const pass = encoder.beginRenderPass({
-      colorAttachments: [
-        {
-          view,
-          loadOp: "clear",
-          storeOp: "store",
-        },
-      ],
+      colorAttachments: [{ view, loadOp: "clear", storeOp: "store" }],
     });
     background.encode(pass);
     render.encode(pass);

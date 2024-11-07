@@ -1,7 +1,9 @@
-import { n, workgroupSize } from "./configuration";
+const width = 0.25;
+const height = 0.5;
+const size = 0.025;
 
-const segmentsX = 20;
-const segmentsY = 20;
+const segmentsX = Math.floor(width / size);
+const segmentsY = Math.floor(height / size);
 
 export const positions = new Array(segmentsY + 1)
   .fill(0)
@@ -11,8 +13,8 @@ export const positions = new Array(segmentsY + 1)
       .map(
         (_, i) =>
           [
-            0.25 * (i / segmentsX - 0.5),
-            0.25 * (j / segmentsX - 0.5),
+            width * (i / segmentsX - 0.5),
+            height * (j / segmentsY - 0.5),
           ] satisfies [number, number]
       )
   );

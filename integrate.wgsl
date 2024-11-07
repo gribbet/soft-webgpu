@@ -9,17 +9,17 @@ struct Boundary {
     offset: f32
 };
 
-const damping = 0.99;
+const damping = 5;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
 
     var current = positions[i];
-    var previous = previouses[i];
+    let previous = previouses[i];
     var force = forces[i];
 
-    var position = current + damping * (current - previous) + force * time * time;
+    var position = current + exp(-damping * time) * (current - previous) + force * time * time;
 
     for (var j = 0u; j < arrayLength(&boundaries); j++) {
         let boundary = boundaries[j];
@@ -29,6 +29,11 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         let distance = dot(position, normal) - offset;
         if (distance < 0) {
             position -= distance * normal;
+        }
+
+        let distance2 = dot(current, normal) - offset;
+        if (distance < 0) {
+            current -= distance2 * normal;
         }
     }
 

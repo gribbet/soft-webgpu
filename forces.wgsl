@@ -4,7 +4,7 @@
 @group(0) @binding(3) var<storage, read_write> forces: array<vec2<f32>>;
 
 const n = 8u;
-const q = 10000.0;
+const k = 500.0;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
@@ -29,7 +29,7 @@ fn spring_force(i: u32, j: u32) -> vec2<f32> {
     let v = positions[i] - positions[j];
     let current_length = length(v);
     let original_length = length(originals[i] - originals[j]);
-    return -q * v * (current_length - original_length) / current_length;
+    return -k / original_length * v * (current_length - original_length) / current_length;
 }
 
 fn pressure_force(i: u32, j: u32, k: u32) -> vec2<f32> {
@@ -39,7 +39,7 @@ fn pressure_force(i: u32, j: u32, k: u32) -> vec2<f32> {
     let current_area = area(a, b, c);
     let original_area = area(originals[i], originals[j], originals[k]);
     let pressure = original_area / current_area - 1.0;
-    return 100000.0 * pressure * 0.5 * perp(c - b);
+    return 100.0 / original_area * pressure * 0.5 * perp(c - b);
 }
 
 fn perp(v: vec2<f32>) -> vec2<f32> {

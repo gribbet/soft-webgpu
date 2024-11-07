@@ -45,9 +45,10 @@ adjacencyData.set(
 
 export const boundaryData = (time: number) =>
   new Float32Array(
-    [0, 1, 2, 3, 4]
-      .map((i) => {
-        const a = time / 10000 + (2 * (i * Math.PI)) / 5;
+    new Array(5)
+      .fill(0)
+      .map((_, i, { length }) => {
+        const a = time / 2000 + (2 * (i * Math.PI)) / length;
         return {
           normal: [Math.cos(a), Math.sin(a)],
           offset: -0.5,
