@@ -36,3 +36,12 @@ export const triangles = new Array(segmentsX).fill(0).flatMap((_, i) =>
       ] satisfies [number, number, number][],
   ),
 );
+
+export const boundary = (time: number) =>
+  new Array(5).fill(0).map((_, i, { length }) => {
+    const a = time / 2000 + (2 * (i * Math.PI)) / length;
+    return {
+      normal: [Math.cos(a), Math.sin(a)],
+      offset: -0.5,
+    };
+  });

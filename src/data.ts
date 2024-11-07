@@ -1,5 +1,5 @@
 import { n, workgroupSize } from "./configuration";
-import { positions, triangles } from "./model";
+import { boundary, positions, triangles } from "./model";
 
 const count = workgroupSize * Math.ceil(positions.length / workgroupSize);
 
@@ -45,14 +45,10 @@ adjacencyData.set(
 
 export const boundaryData = (time: number) =>
   new Float32Array(
-    new Array(5)
-      .fill(0)
-      .map((_, i, { length }) => {
-        const a = time / 2000 + (2 * (i * Math.PI)) / length;
-        return {
-          normal: [Math.cos(a), Math.sin(a)],
-          offset: -0.5,
-        };
-      })
-      .flatMap(({ normal: [nx = 0, ny = 0], offset }) => [nx, ny, offset, 0]),
+    boundary(time).flatMap(({ normal: [nx = 0, ny = 0], offset }) => [
+      nx,
+      ny,
+      offset,
+      0,
+    ]),
   );
