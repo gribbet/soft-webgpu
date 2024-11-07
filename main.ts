@@ -6,7 +6,6 @@ import { createIntegratePipeline } from "./integrate";
 import { createRenderPipeline } from "./render";
 
 /*
- 0xffff
  Collision detection
  */
 

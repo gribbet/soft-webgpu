@@ -29,15 +29,16 @@ const adjacencies = positions.reduce<{ [i: number]: number[] }>((acc, _, i) => {
 }, {});
 
 export const adjacencyData = new Uint32Array(count * n * 2);
-adjacencyData.fill(0xffff);
+adjacencyData.fill(0xffffffff);
 adjacencyData.set(
   positions.flatMap((_, i) => {
     const values = adjacencies[i] ?? [];
     return new Array(n)
       .fill(0)
       .flatMap((_, j) => [
-        (j === 0 || values[j] !== values[0] ? values[j] : undefined) ?? 0xffff,
-        values[j + 1] ?? 0xffff,
+        (j === 0 || values[j] !== values[0] ? values[j] : undefined) ??
+          0xffffffff,
+        values[j + 1] ?? 0xffffffff,
       ]);
   })
 );
