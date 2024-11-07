@@ -30,8 +30,8 @@ fn fragment(@location(0) position: vec2<f32>) -> @location(0) vec4<f32> {
         let distance = dot(position, normal) - offset;
 
         if (distance < 0) {
-            return vec4<f32>(0.2, 0.2, 0.2, 1.0);
+        return vec4<f32>(0, 0, 0, 1.0);
         }
     }
-    return vec4<f32>(0, 0, 0, 1.0);
+    return vec4<f32>(0.2, 0.2, 0.2, 1.0);
 }
