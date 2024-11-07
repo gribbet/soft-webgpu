@@ -37,6 +37,9 @@ export const createRenderPipeline = async ({
     primitive: {
       topology: "triangle-list",
     },
+    multisample: {
+      count: 4,
+    },
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [

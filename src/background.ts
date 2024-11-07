@@ -42,6 +42,9 @@ export const createBackgroundPipeline = async ({
     primitive: {
       topology: "triangle-strip",
     },
+    multisample: {
+      count: 4,
+    },
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [

@@ -9,7 +9,6 @@ import { createRenderPipeline } from "./render";
  Collision detection
  interactivity
  Penalty collision
- Lint
  */
 
 const init = async () => {
@@ -74,11 +73,25 @@ const init = async () => {
     positionBuffer,
   });
 
+  let texture = device.createTexture({
+    size: [canvas.width, canvas.height],
+    sampleCount: 4,
+    format,
+    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+
   new ResizeObserver(([entry]) => {
     const { width = 0, height = 0 } = entry?.contentRect ?? {};
-    canvas.width = width * devicePixelRatio * 2;
-    canvas.height = height * devicePixelRatio * 2;
+    canvas.width = width * devicePixelRatio;
+    canvas.height = height * devicePixelRatio;
     const aspect = width / height;
+    texture.destroy();
+    texture = device.createTexture({
+      size: [width * devicePixelRatio, height * devicePixelRatio],
+      sampleCount: 4,
+      format,
+      usage: GPUTextureUsage.RENDER_ATTACHMENT,
+    });
     device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([aspect]));
   }).observe(canvas);
 
@@ -99,9 +112,12 @@ const init = async () => {
       integrate.encode(encoder, interval / steps);
     }
 
-    const view = context.getCurrentTexture().createView();
+    const view = texture.createView();
+    const resolveTarget = context.getCurrentTexture().createView();
     const pass = encoder.beginRenderPass({
-      colorAttachments: [{ view, loadOp: "clear", storeOp: "store" }],
+      colorAttachments: [
+        { view, resolveTarget, loadOp: "clear", storeOp: "discard" },
+      ],
     });
     background.encode(pass);
     render.encode(pass);
