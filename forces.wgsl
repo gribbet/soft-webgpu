@@ -13,8 +13,9 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     var force = vec2(0.0, -10.0);
 
     for (var z = 0u; z < n; z++) {
-        let j = adjacencies[i * 2 * n + 2 * z];
-        let k = adjacencies[i * 2 * n + 2 * z + 1];
+        let q = i * 2 * n + 2 * z;
+        let j = adjacencies[q];
+        let k = adjacencies[q + 1];
         if (j == 0xffffffff) { break; }
         force += spring_force(i, j);
         if (k == 0xffffffff) { continue; }
