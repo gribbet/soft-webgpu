@@ -1,5 +1,4 @@
-import { triangleData } from "./data";
-import { bindGroupFromBuffers, createBuffer } from "./device";
+import { bindGroupFromBuffers } from "./device";
 import { triangles } from "./model";
 
 export const createRenderPipeline = async ({
@@ -7,18 +6,14 @@ export const createRenderPipeline = async ({
   format,
   aspectBuffer,
   positionBuffer,
+  triangleBuffer,
 }: {
   device: GPUDevice;
   format: GPUTextureFormat;
   aspectBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
+  triangleBuffer: GPUBuffer;
 }) => {
-  const triangleBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    triangleData,
-  );
-
   const module = device.createShaderModule({
     code: await (await fetch("render.wgsl")).text(),
   });
@@ -35,7 +30,7 @@ export const createRenderPipeline = async ({
       targets: [{ format }],
     },
     primitive: {
-      topology: "triangle-list",
+      topology: "line-list",
     },
     multisample: {
       count: 4,
@@ -51,7 +46,7 @@ export const createRenderPipeline = async ({
   const encode = (pass: GPURenderPassEncoder) => {
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.draw(3, triangles.length, 0, 0);
+    pass.draw(6, triangles.length, 0, 0);
   };
 
   return {
