@@ -7,9 +7,12 @@ import { createIntegratePipeline } from "./integrate";
 import { createRenderPipeline } from "./render";
 
 /*
- Collision detection
  interactivity
  Penalty collision
+ Divergence
+ Deployment
+ Proper damping
+ Even mesh
  */
 
 const init = async () => {
