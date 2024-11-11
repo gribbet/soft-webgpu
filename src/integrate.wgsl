@@ -9,7 +9,7 @@ struct Boundary {
     offset: f32
 };
 
-const damping = 5;
+const damping = 10;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {

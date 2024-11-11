@@ -4,7 +4,7 @@
 @group(0) @binding(3) var<storage, read_write> forces: array<vec2<f32>>;
 
 const n = 8u;
-const k = 500.0;
+const k = 1000.0;
 
 struct Adjacency {
     j: u32,
