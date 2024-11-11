@@ -1,5 +1,6 @@
 import { createBackgroundPipeline } from "./background";
-import { boundaryData, positionData } from "./data";
+import { createCollisionPipeline } from "./collision";
+import { boundaryData, positionData, triangleData } from "./data";
 import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
@@ -38,6 +39,11 @@ const init = async () => {
     GPUBufferUsage.STORAGE,
     positionData,
   );
+  const triangleBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE,
+    triangleData,
+  );
   const boundaryBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
@@ -60,6 +66,11 @@ const init = async () => {
     boundaryBuffer,
     forceBuffer,
   });
+  const collision = await createCollisionPipeline({
+    device,
+    positionBuffer,
+    triangleBuffer,
+  });
   const background = await createBackgroundPipeline({
     device,
     format,
@@ -71,6 +82,7 @@ const init = async () => {
     format,
     aspectBuffer,
     positionBuffer,
+    triangleBuffer,
   });
 
   let texture = device.createTexture({
@@ -110,6 +122,7 @@ const init = async () => {
     for (let i = 0; i < steps; i++) {
       forces.encode(encoder);
       integrate.encode(encoder, interval / steps);
+      collision.encode(encoder);
     }
 
     const view = texture.createView();
