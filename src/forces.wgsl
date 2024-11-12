@@ -1,10 +1,12 @@
-@group(0) @binding(0) var<storage, read> originals: array<vec2<f32>>;
-@group(0) @binding(1) var<storage, read> positions: array<vec2<f32>>;
-@group(0) @binding(2) var<storage, read> adjacencies: array<array<Adjacency, n>>;
-@group(0) @binding(3) var<storage, read_write> forces: array<vec2<f32>>;
+@group(0) @binding(0) var<uniform> selected: u32;
+@group(0) @binding(1) var<uniform> anchor: vec2<f32>;
+@group(0) @binding(2) var<storage, read> originals: array<vec2<f32>>;
+@group(0) @binding(3) var<storage, read> positions: array<vec2<f32>>;
+@group(0) @binding(4) var<storage, read> adjacencies: array<array<Adjacency, n>>;
+@group(0) @binding(5) var<storage, read_write> forces: array<vec2<f32>>;
 
 const n = 8u;
-const k = 1000.0;
+const k = 5000.0;
 
 struct Adjacency {
     j: u32,
@@ -27,6 +29,10 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         force += pressure_force(i, j, k);
     }
 
+    if (i == selected) {
+        force -= 400000.0 * (positions[i] - anchor);
+    }
+
     forces[i] = force;
 }
 
@@ -44,7 +50,7 @@ fn pressure_force(i: u32, j: u32, k: u32) -> vec2<f32> {
     let current_area = area(a, b, c);
     let original_area = area(originals[i], originals[j], originals[k]);
     let pressure = original_area / current_area - 1.0;
-    return 100.0 / original_area * pressure * 0.5 * perp(c - b);
+    return 10000.0 / original_area * pressure * 0.5 * perp(c - b);
 }
 
 fn perp(v: vec2<f32>) -> vec2<f32> {

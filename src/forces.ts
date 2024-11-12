@@ -12,6 +12,16 @@ export const createForcesPipeline = async ({
   positionBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
+  const selectedBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Uint32Array([0]),
+  );
+  const anchorBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Float32Array(positions[0] ?? [0, 0]),
+  );
   const originalBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
@@ -36,6 +46,8 @@ export const createForcesPipeline = async ({
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
+    selectedBuffer,
+    anchorBuffer,
     originalBuffer,
     positionBuffer,
     adjacencyBuffer,
@@ -54,5 +66,10 @@ export const createForcesPipeline = async ({
     pass.end();
   };
 
-  return { encode };
+  return {
+    set anchor(_: [number, number]) {
+      device.queue.writeBuffer(anchorBuffer, 0, new Float32Array(_));
+    },
+    encode,
+  };
 };

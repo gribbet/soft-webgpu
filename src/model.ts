@@ -1,6 +1,6 @@
 const width = 0.1;
 const height = 0.5;
-const size = 0.025;
+const size = 0.0125;
 
 const segmentsX = Math.floor(width / size);
 const segmentsY = Math.floor(height / size);

@@ -19,6 +19,16 @@ export const createIntegratePipeline = async ({
     GPUBufferUsage.UNIFORM,
     new Float32Array([0]),
   );
+  const selectedBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Uint32Array([0]),
+  );
+  const anchorBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Float32Array(positions[0] ?? [0, 0]),
+  );
   const previousBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
@@ -39,6 +49,8 @@ export const createIntegratePipeline = async ({
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
     timeBuffer,
+    selectedBuffer,
+    anchorBuffer,
     boundaryBuffer,
     positionBuffer,
     previousBuffer,
@@ -59,5 +71,10 @@ export const createIntegratePipeline = async ({
     pass.end();
   };
 
-  return { encode };
+  return {
+    set anchor(_: [number, number]) {
+      device.queue.writeBuffer(anchorBuffer, 0, new Float32Array(_));
+    },
+    encode,
+  };
 };

@@ -110,6 +110,15 @@ const init = async () => {
     device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([aspect]));
   }).observe(canvas);
 
+  canvas.addEventListener("mousemove", event => {
+    if (event.buttons === 0) return;
+    const { width, height } = canvas;
+    const aspect = width / height;
+    const x = 2 * (event.x / (width / devicePixelRatio)) - 1;
+    const y = (1 - 2 * (event.y / (height / devicePixelRatio))) / aspect;
+    forces.anchor = [x, y];
+  });
+
   let last: number | undefined;
   const frame = (time: number) => {
     requestAnimationFrame(frame);
@@ -121,11 +130,11 @@ const init = async () => {
 
     const encoder = device.createCommandEncoder();
 
-    const steps = 50;
+    const steps = 400;
     for (let i = 0; i < steps; i++) {
       forces.encode(encoder);
       integrate.encode(encoder, interval / steps);
-      collision.encode(encoder);
+      //collision.encode(encoder);
     }
 
     const view = texture.createView();
