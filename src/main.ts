@@ -130,11 +130,11 @@ const init = async () => {
 
     const encoder = device.createCommandEncoder();
 
-    const steps = 400;
+    const steps = 10;
     for (let i = 0; i < steps; i++) {
       forces.encode(encoder);
       integrate.encode(encoder, interval / steps);
-      //collision.encode(encoder);
+      collision.encode(encoder);
     }
 
     const view = texture.createView();

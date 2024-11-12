@@ -2,61 +2,89 @@
 @group(0) @binding(1) var<uniform> anchor: vec2<f32>;
 @group(0) @binding(2) var<storage, read> originals: array<vec2<f32>>;
 @group(0) @binding(3) var<storage, read> positions: array<vec2<f32>>;
-@group(0) @binding(4) var<storage, read> adjacencies: array<array<Adjacency, n>>;
+@group(0) @binding(4) var<storage, read> adjacencies: array<array<u32, n>>;
 @group(0) @binding(5) var<storage, read_write> forces: array<vec2<f32>>;
 
 const n = 8u;
-const k = 5000.0;
-
-struct Adjacency {
-    j: u32,
-    k: u32
-};
+const k = 10000.0;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
-    let adjacency = adjacencies[i];
 
-    var force = vec2(0.0, -10.0);
+    let gravity = vec2(0, -10.0);
 
-    for (var z = 0u; z < n; z++) {
-        let j = adjacency[z].j;
-        let k = adjacency[z].k;
-        if (j == 0xffffffff) { break; }
-        force += spring_force(i, j);
-        if (k == 0xffffffff) { continue; }
-        force += pressure_force(i, j, k);
-    }
+    var force = vec2<f32>(0, 0);
+
+    force += gravity;
+    force += spring_forces(i);
 
     if (i == selected) {
-        force -= 400000.0 * (positions[i] - anchor);
+        force += 1000.0 * (anchor - positions[i]);
     }
 
     forces[i] = force;
 }
 
-fn spring_force(i: u32, j: u32) -> vec2<f32> {
-    let v = positions[i] - positions[j];
-    let current_length = length(v);
-    let original_length = length(originals[i] - originals[j]);
-    return -k / original_length * v * (current_length - original_length) / current_length;
+fn spring_forces(i: u32) -> vec2<f32> { 
+    var force = vec2(0.0, 0.0);
+    let adjacency = adjacencies[i];
+    for (var z = 0u; z < n; z++) {
+        let j = adjacency[z];
+        if (j == 0xffffffff) { break; }
+        force += spring_force(i, j);
+    }
+    return force;
 }
 
-fn pressure_force(i: u32, j: u32, k: u32) -> vec2<f32> {
-    let a = positions[i];
-    let b = positions[j];
-    let c = positions[k];
-    let current_area = area(a, b, c);
-    let original_area = area(originals[i], originals[j], originals[k]);
-    let pressure = original_area / current_area - 1.0;
-    return 10000.0 / original_area * pressure * 0.5 * perp(c - b);
+fn spring_force(i: u32, j: u32) -> vec2<f32> {
+    let adjacency = adjacencies[j];
+    let center = center(j);
+    let original_center = original_center(j);
+    var a = 0.0;
+    var b = 0.0;
+    for (var z = 0u; z < n; z++) {
+        let k = adjacency[z];
+        if (k == 0xffffffff) { break; }
+        let r = positions[k] - center;
+        let q = originals[k] - original_center;
+        a += dot(r, q);
+        b += dot(perp(r), q);
+    }
+    let angle = atan2(b, a);
+    let rotation = mat2x2<f32>(cos(angle), -sin(angle), sin(angle), cos(angle));
+    let ideal = center + rotation * (originals[i] - original_center);   
+    let position = positions[i];
+    return k * (ideal - position);
+}
+
+
+fn center(i: u32) -> vec2<f32> {
+    let adjacency = adjacencies[i];
+    var center = vec2<f32>(0, 0);
+    var z = 0u;
+    for (z = 0u; z < n; z++) {
+        let j = adjacency[z];
+        if (j == 0xffffffff) { break; }
+        center += positions[j];
+    }
+    center /= f32(z);
+    return center;
+}
+
+fn original_center(i: u32) -> vec2<f32> {
+    let adjacency = adjacencies[i];
+    var center = vec2<f32>(0, 0);
+    var z = 0u;
+    for (z = 0u; z < n; z++) {
+        let j = adjacency[z];
+        if (j == 0xffffffff) { break; }
+        center += originals[j];
+    }
+    center /= f32(z);
+    return center;
 }
 
 fn perp(v: vec2<f32>) -> vec2<f32> {
     return vec2(-v.y, v.x);
-}
-
-fn area(a: vec2<f32>, b: vec2<f32>, c: vec2<f32>) -> f32 {
-    return -0.5 * (dot(a, perp(b)) + dot(b, perp(c)) + dot(c, perp(a)));
 }
