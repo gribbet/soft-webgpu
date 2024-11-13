@@ -15,6 +15,8 @@ import { createRenderPipeline } from "./render";
  Even mesh
  */
 
+const steps = 200;
+
 const init = async () => {
   const { gpu } = navigator;
   const adapter = await gpu.requestAdapter();
@@ -32,6 +34,11 @@ const init = async () => {
   const format = gpu.getPreferredCanvasFormat();
   context.configure({ device, format });
 
+  const timeBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Float32Array([0.016]),
+  );
   const aspectBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
@@ -41,6 +48,11 @@ const init = async () => {
     device,
     GPUBufferUsage.STORAGE,
     positionData,
+  );
+  const velocityBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE,
+    new Float32Array(positionData.length).fill(0),
   );
   const triangleBuffer = createBuffer(
     device,
@@ -61,11 +73,14 @@ const init = async () => {
   const forces = await createForcesPipeline({
     device,
     positionBuffer,
+    velocityBuffer,
     forceBuffer,
   });
   const integrate = await createIntegratePipeline({
     device,
+    timeBuffer,
     positionBuffer,
+    velocityBuffer,
     boundaryBuffer,
     forceBuffer,
   });
@@ -126,14 +141,16 @@ const init = async () => {
     const interval = (time - (last ?? time)) / 1000;
     last = time;
 
+    if (interval === 0) return;
+
+    queue.writeBuffer(timeBuffer, 0, new Float32Array([interval / steps]));
     queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
 
     const encoder = device.createCommandEncoder();
 
-    const steps = 10;
     for (let i = 0; i < steps; i++) {
       forces.encode(encoder);
-      integrate.encode(encoder, interval / steps);
+      integrate.encode(encoder);
       collision.encode(encoder);
     }
 

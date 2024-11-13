@@ -3,7 +3,7 @@
 @group(0) @binding(2) var<uniform> anchor: vec2<f32>;
 @group(0) @binding(3) var<storage, read> boundaries: array<Boundary>; 
 @group(0) @binding(4) var<storage, read_write> positions: array<vec2<f32>>;
-@group(0) @binding(5) var<storage, read_write> previouses: array<vec2<f32>>;
+@group(0) @binding(5) var<storage, read_write> velocities: array<vec2<f32>>;
 @group(0) @binding(6) var<storage, read> forces: array<vec2<f32>>;
 
 struct Boundary {
@@ -11,17 +11,16 @@ struct Boundary {
     offset: f32
 };
 
-const damping = 20;
+const damping = 8.0;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
 
-    var current = positions[i];
-    let previous = previouses[i];
-    var force = forces[i];
-
-    var position = current + exp(-damping * time) * (current - previous) + force * time * time;
+    
+    let force = forces[i] - velocities[i] * damping;
+    velocities[i] += force * time;
+    var position = positions[i] + velocities[i] * time;
 
     for (var j = 0u; j < arrayLength(&boundaries); j++) {
         let boundary = boundaries[j];
@@ -30,19 +29,19 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
         let distance = dot(position, normal) - offset;
         if (distance < 0) {
-            position -= distance * normal;
+            position -= (distance - 0.01) * normal;
         }
 
-        let distance2 = dot(current, normal) - offset;
-        if (distance < 0) {
-            current -= distance2 * normal;
-        }
+        //let distance2 = dot(current, normal) - offset;
+        //if (distance < 0) {
+        //    current -= distance2 * normal;
+       // }
     }
 
     if (selected == 100000) {
         position = anchor;
     }
 
-    previouses[i] = current;
+    //previouses[i] = current;
     positions[i] = position;
 }

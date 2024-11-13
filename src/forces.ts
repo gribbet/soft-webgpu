@@ -6,10 +6,12 @@ import { positions } from "./model";
 export const createForcesPipeline = async ({
   device,
   positionBuffer,
+  velocityBuffer,
   forceBuffer,
 }: {
   device: GPUDevice;
   positionBuffer: GPUBuffer;
+  velocityBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
   const selectedBuffer = createBuffer(
@@ -50,6 +52,7 @@ export const createForcesPipeline = async ({
     anchorBuffer,
     originalBuffer,
     positionBuffer,
+    velocityBuffer,
     adjacencyBuffer,
     forceBuffer,
   ]);

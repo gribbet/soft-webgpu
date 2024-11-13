@@ -1,24 +1,22 @@
 import { workgroupSize } from "./configuration";
-import { positionData } from "./data";
 import { bindGroupFromBuffers, createBuffer } from "./device";
 import { positions } from "./model";
 
 export const createIntegratePipeline = async ({
   device,
+  timeBuffer,
   positionBuffer,
+  velocityBuffer,
   boundaryBuffer,
   forceBuffer,
 }: {
   device: GPUDevice;
+  timeBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
+  velocityBuffer: GPUBuffer;
   boundaryBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
-  const timeBuffer = createBuffer(
-    device,
-    GPUBufferUsage.UNIFORM,
-    new Float32Array([0]),
-  );
   const selectedBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
@@ -28,11 +26,6 @@ export const createIntegratePipeline = async ({
     device,
     GPUBufferUsage.UNIFORM,
     new Float32Array(positions[0] ?? [0, 0]),
-  );
-  const previousBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    positionData,
   );
 
   const module = device.createShaderModule({
@@ -53,13 +46,11 @@ export const createIntegratePipeline = async ({
     anchorBuffer,
     boundaryBuffer,
     positionBuffer,
-    previousBuffer,
+    velocityBuffer,
     forceBuffer,
   ]);
 
-  const encode = (encoder: GPUCommandEncoder, time: number) => {
-    device.queue.writeBuffer(timeBuffer, 0, new Float32Array([time]));
-
+  const encode = (encoder: GPUCommandEncoder) => {
     const pass = encoder.beginComputePass();
 
     pass.setPipeline(pipeline);

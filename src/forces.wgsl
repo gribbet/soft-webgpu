@@ -2,17 +2,19 @@
 @group(0) @binding(1) var<uniform> anchor: vec2<f32>;
 @group(0) @binding(2) var<storage, read> originals: array<vec2<f32>>;
 @group(0) @binding(3) var<storage, read> positions: array<vec2<f32>>;
-@group(0) @binding(4) var<storage, read> adjacencies: array<array<u32, n>>;
-@group(0) @binding(5) var<storage, read_write> forces: array<vec2<f32>>;
+@group(0) @binding(4) var<storage, read> velocities: array<vec2<f32>>;
+@group(0) @binding(5) var<storage, read> adjacencies: array<array<u32, n>>;
+@group(0) @binding(6) var<storage, read_write> forces: array<vec2<f32>>;
 
 const n = 8u;
-const k = 10000.0;
+const k = 2000.0;
+const damping = 000.0;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
 
-    let gravity = vec2(0, -10.0);
+    let gravity = vec2(0, -1.0);
 
     var force = vec2<f32>(0, 0);
 
@@ -20,7 +22,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     force += spring_forces(i);
 
     if (i == selected) {
-        force += 1000.0 * (anchor - positions[i]);
+        force += 000.0 * (anchor - positions[i]);
     }
 
     forces[i] = force;
@@ -51,10 +53,21 @@ fn spring_force(i: u32, j: u32) -> vec2<f32> {
         a += dot(r, q);
         b += dot(perp(r), q);
     }
-    let angle = atan2(b, a);
+    const epsilon = 0.01;
+    var angle = 0.0;
+    //if (abs(a) > epsilon && abs(b) > epsilon) {
+    //    angle = atan2(b, a);
+    //}
     let rotation = mat2x2<f32>(cos(angle), -sin(angle), sin(angle), cos(angle));
     let ideal = center + rotation * (originals[i] - original_center);   
     let position = positions[i];
+
+    let relative_velocity = velocities[i] - velocities[j];
+
+    var damping_force = 0.0;
+    let test = length(ideal - position);
+    damping_force = max(0, damping / test / test * dot(relative_velocity, ideal - position));
+
     return k * (ideal - position);
 }
 
