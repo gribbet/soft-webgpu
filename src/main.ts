@@ -1,6 +1,11 @@
 import { createBackgroundPipeline } from "./background";
 import { createCollisionPipeline } from "./collision";
-import { boundaryData, positionData, triangleData } from "./data";
+import {
+  adjacencyData,
+  boundaryData,
+  positionData,
+  triangleData,
+} from "./data";
 import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
@@ -15,7 +20,7 @@ import { createRenderPipeline } from "./render";
  Even mesh
  */
 
-const steps = 200;
+const steps = 50;
 
 const init = async () => {
   const { gpu } = navigator;
@@ -37,12 +42,27 @@ const init = async () => {
   const timeBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
-    new Float32Array([0.016]),
+    new Float32Array([0]),
+  );
+  const selectedBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Uint32Array([-1]),
+  );
+  const anchorBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Float32Array([0, 0]),
   );
   const aspectBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
     new Float32Array([1.0]),
+  );
+  const adjacencyBuffer = createBuffer(
+    device,
+    GPUBufferUsage.STORAGE,
+    adjacencyData,
   );
   const positionBuffer = createBuffer(
     device,
@@ -72,8 +92,10 @@ const init = async () => {
 
   const forces = await createForcesPipeline({
     device,
+    selectedBuffer,
+    anchorBuffer,
+    adjacencyBuffer,
     positionBuffer,
-    velocityBuffer,
     forceBuffer,
   });
   const integrate = await createIntegratePipeline({
@@ -131,8 +153,16 @@ const init = async () => {
     const aspect = width / height;
     const x = 2 * (event.x / (width / devicePixelRatio)) - 1;
     const y = (1 - 2 * (event.y / (height / devicePixelRatio))) / aspect;
-    forces.anchor = [x, y];
+    queue.writeBuffer(anchorBuffer, 0, new Float32Array([x, y]));
   });
+
+  canvas.addEventListener("mousedown", () =>
+    queue.writeBuffer(selectedBuffer, 0, new Float32Array([0])),
+  );
+
+  canvas.addEventListener("mouseup", () =>
+    queue.writeBuffer(selectedBuffer, 0, new Float32Array([-1])),
+  );
 
   let last: number | undefined;
   const frame = (time: number) => {
@@ -144,7 +174,7 @@ const init = async () => {
     if (interval === 0) return;
 
     queue.writeBuffer(timeBuffer, 0, new Float32Array([interval / steps]));
-    queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
+    queue.writeBuffer(boundaryBuffer, 0, boundaryData(0));
 
     const encoder = device.createCommandEncoder();
 

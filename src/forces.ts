@@ -1,38 +1,27 @@
 import { workgroupSize } from "./configuration";
-import { adjacencyData, positionData } from "./data";
+import { positionData } from "./data";
 import { bindGroupFromBuffers, createBuffer } from "./device";
 import { positions } from "./model";
 
 export const createForcesPipeline = async ({
   device,
+  selectedBuffer,
+  anchorBuffer,
+  adjacencyBuffer,
   positionBuffer,
-  velocityBuffer,
   forceBuffer,
 }: {
   device: GPUDevice;
+  selectedBuffer: GPUBuffer;
+  anchorBuffer: GPUBuffer;
+  adjacencyBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
-  velocityBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
-  const selectedBuffer = createBuffer(
-    device,
-    GPUBufferUsage.UNIFORM,
-    new Uint32Array([0]),
-  );
-  const anchorBuffer = createBuffer(
-    device,
-    GPUBufferUsage.UNIFORM,
-    new Float32Array(positions[0] ?? [0, 0]),
-  );
   const originalBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
     positionData,
-  );
-  const adjacencyBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    adjacencyData,
   );
 
   const module = device.createShaderModule({
@@ -50,10 +39,9 @@ export const createForcesPipeline = async ({
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
     selectedBuffer,
     anchorBuffer,
+    adjacencyBuffer,
     originalBuffer,
     positionBuffer,
-    velocityBuffer,
-    adjacencyBuffer,
     forceBuffer,
   ]);
 
@@ -70,9 +58,6 @@ export const createForcesPipeline = async ({
   };
 
   return {
-    set anchor(_: [number, number]) {
-      device.queue.writeBuffer(anchorBuffer, 0, new Float32Array(_));
-    },
     encode,
   };
 };

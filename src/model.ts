@@ -1,4 +1,4 @@
-const width = 0.25;
+const width = 0.1;
 const height = 0.5;
 const size = 0.025;
 

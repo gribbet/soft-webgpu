@@ -8,32 +8,26 @@ positionData.set(new Float32Array(positions.flat()));
 
 export const triangleData = new Uint32Array(triangles.flat());
 
-const adjacencies = positions.reduce<{ [i: number]: number[] }>((acc, _, i) => {
-  const edges = triangles
-    .filter(_ => _.includes(i))
-    .map<
-      [number, number]
-    >(([a, b, c]) => (a === i ? [b, c] : b === i ? [c, a] : [a, b]));
-  const result: number[] = [];
-  for (;;) {
-    const next = edges.pop();
-    if (!next) break;
-    const [a, b] = next;
-    if (result.length === 0) result.push(a, b);
-    else if (result[0] === b) result.splice(0, 0, a);
-    else if (result[result.length - 1] === a) result.push(b);
-    else edges.unshift(next);
-  }
-  acc[i] = result;
-  return acc;
-}, {});
+const adjacencies = positions.reduce<{ [i: number]: [number, number][] }>(
+  (acc, _, i) => {
+    acc[i] = triangles
+      .filter(_ => _.includes(i))
+      .map<
+        [number, number]
+      >(([a, b, c]) => (a === i ? [b, c] : b === i ? [c, a] : [a, b]));
+    return acc;
+  },
+  {},
+);
 
-export const adjacencyData = new Uint32Array(count * n);
+export const adjacencyData = new Uint32Array(count * n * 2);
+adjacencyData.fill(0xffffffff);
 adjacencyData.set(
-  positions.flatMap((_, i) => {
-    const values = adjacencies[i] ?? [];
-    return new Array(n).fill(0).map((_, j) => values[j] ?? 0xffffffff);
-  }),
+  positions.flatMap((_, i) =>
+    new Array(n)
+      .fill(0)
+      .flatMap((_, j) => (adjacencies[i] ?? [])[j] ?? [0xffffffff, 0xffffffff]),
+  ),
 );
 
 export const boundaryData = (time: number) =>
