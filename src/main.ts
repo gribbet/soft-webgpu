@@ -18,6 +18,8 @@ import { createRenderPipeline } from "./render";
  Deployment
  Proper damping
  Even mesh
+ Friction
+ Fix collision
  */
 
 const steps = 64;

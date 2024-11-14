@@ -6,7 +6,7 @@
 @group(0) @binding(5) var<storage, read_write> forces: array<vec2<f32>>;
 
 const n = 8u;
-const stiffness = 100000.0;
+const stiffness = 300000.0;
  
 const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);
 
@@ -19,7 +19,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     force += body_forces(i);
 
     if (i == selected) {
-        force += 10000.0 * (anchor - positions[i]);
+        force += 20000.0 * (anchor - positions[i]);
     }
 
     forces[i] = force;
@@ -52,10 +52,9 @@ fn body_force(i: u32, j: u32, k: u32) -> vec2<f32> {
     let deformation = mat2x2(p1 - p0, p2 - p0) * inverse(mat2x2(r1 - r0, r2 - r0));
     let scale_shear = mat2x2_sqrt(transpose(deformation) * deformation);
     let rotation = deformation * inverse(scale_shear);
-    let inverse_rotation = transpose(rotation);
     let strain = scale_shear - identity;
     let stress = stiffness * strain;
-    return rotation * stress * inverse_rotation * (p1 + p2 - 2 * p0);
+    return rotation * stress * (r1 + r2 - 2 * r0);
 }
 
 fn inverse(m: mat2x2<f32>) -> mat2x2<f32> {
