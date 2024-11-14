@@ -6,14 +6,14 @@ export const createIntegratePipeline = async ({
   device,
   timeBuffer,
   positionBuffer,
-  velocityBuffer,
+  previousBuffer,
   boundaryBuffer,
   forceBuffer,
 }: {
   device: GPUDevice;
   timeBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
-  velocityBuffer: GPUBuffer;
+  previousBuffer: GPUBuffer;
   boundaryBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
@@ -33,7 +33,7 @@ export const createIntegratePipeline = async ({
     timeBuffer,
     boundaryBuffer,
     positionBuffer,
-    velocityBuffer,
+    previousBuffer,
     forceBuffer,
   ]);
 

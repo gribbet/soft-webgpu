@@ -20,7 +20,7 @@ import { createRenderPipeline } from "./render";
  Even mesh
  */
 
-const steps = 50;
+const steps = 10;
 
 const init = async () => {
   const { gpu } = navigator;
@@ -69,10 +69,10 @@ const init = async () => {
     GPUBufferUsage.STORAGE,
     positionData,
   );
-  const velocityBuffer = createBuffer(
+  const previousBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    new Float32Array(positionData.length).fill(0),
+    positionData,
   );
   const triangleBuffer = createBuffer(
     device,
@@ -102,7 +102,7 @@ const init = async () => {
     device,
     timeBuffer,
     positionBuffer,
-    velocityBuffer,
+    previousBuffer,
     boundaryBuffer,
     forceBuffer,
   });
