@@ -15,12 +15,12 @@ const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
 
-    var force = vec2<f32>(0, -1.0);
+    var force = vec2<f32>();
 
     force += body_forces(i);
 
     if (i == selected) {
-        force += 10000.0 * (anchor - positions[i]);
+        force += 1000.0 * (anchor - positions[i]);
     }
 
     forces[i] = force;
@@ -71,7 +71,7 @@ fn inverse(m: mat2x2<f32>) -> mat2x2<f32> {
 fn mat2x2_sqrt(m: mat2x2<f32>) -> mat2x2<f32> {
     var y = m;
     var z = identity;
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 50; i++) {
         let residual = identity - y * z;
         y *= identity + 0.5 * residual;
         z *= identity + 0.5 * residual;

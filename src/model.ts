@@ -1,5 +1,5 @@
 const width = 0.1;
-const height = 0.5;
+const height = 0.8;
 const size = 0.025;
 
 const segmentsX = Math.floor(width / size);
@@ -12,10 +12,10 @@ export const positions = new Array(segmentsY + 1)
       .fill(0)
       .map(
         (_, i) =>
-          [size * i - width * 0.5, size * j - height * 0.5] satisfies [
-            number,
-            number,
-          ],
+          [
+            size * i - (j * size) / 2 - width * 0.5,
+            (size * j * Math.sqrt(3)) / 2 - height * 0.5,
+          ] satisfies [number, number],
       ),
   );
 
