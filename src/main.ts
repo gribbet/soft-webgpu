@@ -20,7 +20,7 @@ import { createRenderPipeline } from "./render";
  Even mesh
  */
 
-const steps = 10;
+const steps = 100;
 
 const init = async () => {
   const { gpu } = navigator;
@@ -174,7 +174,7 @@ const init = async () => {
     if (interval === 0) return;
 
     queue.writeBuffer(timeBuffer, 0, new Float32Array([interval / steps]));
-    queue.writeBuffer(boundaryBuffer, 0, boundaryData(0));
+    queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
 
     const encoder = device.createCommandEncoder();
 

@@ -6,7 +6,7 @@
 @group(0) @binding(5) var<storage, read_write> forces: array<vec2<f32>>;
 
 const n = 8u;
-const stiffness = 10000.0;
+const stiffness = 100000.0;
 const damping = 000.0;
  
 const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);
@@ -15,7 +15,7 @@ const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
 
-    var force = vec2<f32>();
+    var force = vec2<f32>(0, -1.0);
 
     force += body_forces(i);
 
@@ -67,14 +67,48 @@ fn inverse(m: mat2x2<f32>) -> mat2x2<f32> {
     );
 }
 
-// Newton-Schulz
 fn mat2x2_sqrt(m: mat2x2<f32>) -> mat2x2<f32> {
-    var y = m;
-    var z = identity;
-    for (var i = 0; i < 50; i++) {
-        let residual = identity - y * z;
-        y *= identity + 0.5 * residual;
-        z *= identity + 0.5 * residual;
+    // Step 1: Compute the trace and determinant
+    let trace = m[0][0] + m[1][1];
+    let det = m[0][0] * m[1][1] - m[0][1] * m[1][0];
+    
+    // Step 2: Calculate the discriminant for eigenvalues
+    let discriminant = trace * trace - 4.0 * det;
+    if (discriminant < 0.0) { 
+        return identity;
     }
-    return y;
+    
+    // Step 3: Calculate eigenvalues
+    let sqrt_disc = sqrt(discriminant);
+    let lambda1 = 0.5 * (trace + sqrt_disc);
+    let lambda2 = 0.5 * (trace - sqrt_disc);
+    
+    // Step 4: Square roots of eigenvalues
+    let sqrt_lambda1 = sqrt(lambda1);
+    let sqrt_lambda2 = sqrt(lambda2);
+    
+    // Step 5: Calculate eigenvectors
+    var v1 = vec2<f32>(m[0][0] - lambda2, m[0][1]);
+    var v2 = vec2<f32>(m[0][1], m[1][1] - lambda1);
+    
+    // Normalize the eigenvectors
+    if (length(v1) > 1e-5) {
+        v1 = normalize(v1);
+    } else {
+        v1 = vec2<f32>(1.0, 0.0);  // Default vector if nearly zero
+    }
+    
+    if (length(v2) > 1e-5) {
+        v2 = normalize(v2);
+    } else {
+        v2 = vec2<f32>(0.0, 1.0);  // Default vector if nearly zero
+    }
+    
+    // Step 6: Construct the matrix from eigenvectors and square-rooted eigenvalues
+    let V = mat2x2<f32>(v1, v2);
+    let D_sqrt = mat2x2<f32>(sqrt_lambda1, 0.0, 0.0, sqrt_lambda2);
+    
+    // Reconstruct the square root matrix
+    let V_inv = mat2x2<f32>(V[1][1], -V[0][1], -V[1][0], V[0][0]) * (1.0 / (V[0][0] * V[1][1] - V[0][1] * V[1][0]));
+    return V * D_sqrt * V_inv;
 }
