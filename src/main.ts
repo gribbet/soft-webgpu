@@ -20,7 +20,7 @@ import { createRenderPipeline } from "./render";
  Even mesh
  */
 
-const steps = 100;
+const steps = 64;
 
 const init = async () => {
   const { gpu } = navigator;
@@ -153,12 +153,9 @@ const init = async () => {
     const aspect = width / height;
     const x = 2 * (event.x / (width / devicePixelRatio)) - 1;
     const y = (1 - 2 * (event.y / (height / devicePixelRatio))) / aspect;
+    queue.writeBuffer(selectedBuffer, 0, new Float32Array([0]));
     queue.writeBuffer(anchorBuffer, 0, new Float32Array([x, y]));
   });
-
-  canvas.addEventListener("mousedown", () =>
-    queue.writeBuffer(selectedBuffer, 0, new Float32Array([0])),
-  );
 
   canvas.addEventListener("mouseup", () =>
     queue.writeBuffer(selectedBuffer, 0, new Float32Array([-1])),

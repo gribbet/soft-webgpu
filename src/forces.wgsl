@@ -7,7 +7,6 @@
 
 const n = 8u;
 const stiffness = 100000.0;
-const damping = 000.0;
  
 const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);
 
@@ -15,12 +14,12 @@ const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
 
-    var force = vec2<f32>(0, -1.0);
+    var force = vec2<f32>(0, -10.0);
 
     force += body_forces(i);
 
     if (i == selected) {
-        force += 1000.0 * (anchor - positions[i]);
+        force += 10000.0 * (anchor - positions[i]);
     }
 
     forces[i] = force;
@@ -55,12 +54,15 @@ fn body_force(i: u32, j: u32, k: u32) -> vec2<f32> {
     let rotation = deformation * inverse(scale_shear);
     let inverse_rotation = transpose(rotation);
     let strain = scale_shear - identity;
-
-    return stiffness * rotation * strain * inverse_rotation * (p1 + p2 - 2 * p0);
+    let stress = stiffness * strain;
+    return rotation * stress * inverse_rotation * (p1 + p2 - 2 * p0);
 }
 
 fn inverse(m: mat2x2<f32>) -> mat2x2<f32> {
     let determinant = m[0][0] * m[1][1] - m[0][1] * m[1][0];
+    if (determinant < 1e-5) {
+        return identity;
+    }
     return mat2x2<f32>(
         m[1][1] / determinant, -m[0][1] / determinant,
        -m[1][0] / determinant,  m[0][0] / determinant
@@ -68,47 +70,34 @@ fn inverse(m: mat2x2<f32>) -> mat2x2<f32> {
 }
 
 fn mat2x2_sqrt(m: mat2x2<f32>) -> mat2x2<f32> {
-    // Step 1: Compute the trace and determinant
     let trace = m[0][0] + m[1][1];
     let det = m[0][0] * m[1][1] - m[0][1] * m[1][0];
     
-    // Step 2: Calculate the discriminant for eigenvalues
     let discriminant = trace * trace - 4.0 * det;
     if (discriminant < 0.0) { 
         return identity;
     }
+
+    let lambda1 = 0.5 * (trace + sqrt(discriminant));
+    let lambda2 = 0.5 * (trace - sqrt(discriminant));
     
-    // Step 3: Calculate eigenvalues
-    let sqrt_disc = sqrt(discriminant);
-    let lambda1 = 0.5 * (trace + sqrt_disc);
-    let lambda2 = 0.5 * (trace - sqrt_disc);
-    
-    // Step 4: Square roots of eigenvalues
-    let sqrt_lambda1 = sqrt(lambda1);
-    let sqrt_lambda2 = sqrt(lambda2);
-    
-    // Step 5: Calculate eigenvectors
     var v1 = vec2<f32>(m[0][0] - lambda2, m[0][1]);
     var v2 = vec2<f32>(m[0][1], m[1][1] - lambda1);
     
-    // Normalize the eigenvectors
     if (length(v1) > 1e-5) {
         v1 = normalize(v1);
     } else {
-        v1 = vec2<f32>(1.0, 0.0);  // Default vector if nearly zero
+        v1 = vec2<f32>(1.0, 0.0);
     }
     
     if (length(v2) > 1e-5) {
         v2 = normalize(v2);
     } else {
-        v2 = vec2<f32>(0.0, 1.0);  // Default vector if nearly zero
+        v2 = vec2<f32>(0.0, 1.0);
     }
     
-    // Step 6: Construct the matrix from eigenvectors and square-rooted eigenvalues
-    let V = mat2x2<f32>(v1, v2);
-    let D_sqrt = mat2x2<f32>(sqrt_lambda1, 0.0, 0.0, sqrt_lambda2);
-    
-    // Reconstruct the square root matrix
-    let V_inv = mat2x2<f32>(V[1][1], -V[0][1], -V[1][0], V[0][0]) * (1.0 / (V[0][0] * V[1][1] - V[0][1] * V[1][0]));
-    return V * D_sqrt * V_inv;
+    let v = mat2x2<f32>(v1, v2);
+    let d_sqrt = mat2x2<f32>(sqrt(lambda1), 0.0, 0.0, sqrt(lambda2));
+    let v_inv = mat2x2<f32>(v[1][1], -v[0][1], -v[1][0], v[0][0]) * (1.0 / (v[0][0] * v[1][1] - v[0][1] * v[1][0]));
+    return v * d_sqrt * v_inv;
 }
