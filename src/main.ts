@@ -16,11 +16,8 @@ import { createRenderPipeline } from "./render";
  Penalty collision
  Divergence
  Deployment
- Proper damping
- Even mesh
  Friction
  Fix collision
- Mass
  */
 
 const steps = 64;

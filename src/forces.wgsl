@@ -6,8 +6,8 @@
 @group(0) @binding(5) var<storage, read> previouses: array<vec2<f32>>;
 @group(0) @binding(6) var<storage, read_write> forces: array<vec2<f32>>;
 
-const stiffness = 100000.0;
-const damping = 10000000.0;
+const stiffness = 100.0;
+const damping = 10000.0;
 const n = 8u;
 const epsilon = 1e-4;
  
@@ -23,7 +23,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     force += body_forces(i);
 
     if (i == selected) {
-        force += 10000.0 * (anchor - positions[i]);
+        force += 100.0 * (anchor - positions[i]);
     }
 
     forces[i] = force;
