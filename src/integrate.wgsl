@@ -12,8 +12,9 @@ struct Boundary {
     offset: f32
 };
 
-const damping = 0.0;
+const damping = 1.0;
 const gravity = vec2(0, -10.0);
+const friction = 0.5;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
@@ -34,11 +35,11 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         let distance = dot(position, normal) - offset;
         if (distance < 0) {
             position -= distance * normal;
-        }
-
-        let distance2 = dot(current, normal) - offset;
-        if (distance < 0) {
-            current -= distance2 * normal;
+            let velocity = current - previous;
+            let normal_velocity = dot(velocity, normal) * normal;
+            let tangential_velocity = velocity - normal_velocity;
+            let new_velocity = -normal_velocity + tangential_velocity * (1.0 - friction);
+            current = position - new_velocity;
         }
     }
 

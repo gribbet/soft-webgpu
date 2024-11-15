@@ -13,7 +13,6 @@ import { createRenderPipeline } from "./render";
 
 /*
  Deployment
- Friction
  Fix collision
  */
 
