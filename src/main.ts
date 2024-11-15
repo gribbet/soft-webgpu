@@ -1,12 +1,6 @@
-import {
-  adjacencyData,
-  boundaryData,
-  positionData,
-  triangleData,
-} from "./data";
+import { createComputer } from "./computer";
+import { boundaryData, positionData, triangleData } from "./data";
 import { createBuffer } from "./device";
-import { createForcesPipeline } from "./forces";
-import { createIntegratePipeline } from "./integrate";
 import { createPicker } from "./picker";
 import { createRenderer } from "./renderer";
 
@@ -55,17 +49,7 @@ const init = async () => {
     GPUBufferUsage.UNIFORM,
     new Float32Array([1.0]),
   );
-  const adjacencyBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    adjacencyData,
-  );
   const positionBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    positionData,
-  );
-  const previousBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
     positionData,
@@ -80,31 +64,15 @@ const init = async () => {
     GPUBufferUsage.STORAGE,
     boundaryData(0),
   );
-  const forceBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    positionData.map(() => 0),
-  );
 
-  const forcesPipeline = await createForcesPipeline({
-    device,
-    timeBuffer,
-    adjacencyBuffer,
-    positionBuffer,
-    previousBuffer,
-    forceBuffer,
-  });
-  const integratePipeline = await createIntegratePipeline({
+  const computer = await createComputer({
     device,
     timeBuffer,
     selectedBuffer,
     anchorBuffer,
     positionBuffer,
-    previousBuffer,
     boundaryBuffer,
-    forceBuffer,
   });
-
   const renderer = await createRenderer({
     device,
     context,
@@ -162,15 +130,7 @@ const init = async () => {
     queue.writeBuffer(timeBuffer, 0, new Float32Array([interval / steps]));
     queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
 
-    const encoder = device.createCommandEncoder();
-
-    for (let i = 0; i < steps; i++) {
-      forcesPipeline.encode(encoder);
-      integratePipeline.encode(encoder);
-    }
-
-    queue.submit([encoder.finish()]);
-
+    computer.compute();
     renderer.render();
   };
 
