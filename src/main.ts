@@ -20,6 +20,7 @@ import { createRenderPipeline } from "./render";
  Even mesh
  Friction
  Fix collision
+ Mass
  */
 
 const steps = 64;
@@ -98,6 +99,7 @@ const init = async () => {
     anchorBuffer,
     adjacencyBuffer,
     positionBuffer,
+    previousBuffer,
     forceBuffer,
   });
   const integrate = await createIntegratePipeline({
@@ -167,7 +169,7 @@ const init = async () => {
   const frame = (time: number) => {
     requestAnimationFrame(frame);
 
-    const interval = (time - (last ?? time)) / 1000;
+    const interval = (time - (last ?? time)) / 10000;
     last = time;
 
     if (interval === 0) return;
@@ -180,7 +182,7 @@ const init = async () => {
     for (let i = 0; i < steps; i++) {
       forces.encode(encoder);
       integrate.encode(encoder);
-      collision.encode(encoder);
+      // collision.encode(encoder);
     }
 
     const view = texture.createView();

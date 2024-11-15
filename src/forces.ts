@@ -9,6 +9,7 @@ export const createForcesPipeline = async ({
   anchorBuffer,
   adjacencyBuffer,
   positionBuffer,
+  previousBuffer,
   forceBuffer,
 }: {
   device: GPUDevice;
@@ -16,6 +17,7 @@ export const createForcesPipeline = async ({
   anchorBuffer: GPUBuffer;
   adjacencyBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
+  previousBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
   const originalBuffer = createBuffer(
@@ -42,6 +44,7 @@ export const createForcesPipeline = async ({
     adjacencyBuffer,
     originalBuffer,
     positionBuffer,
+    previousBuffer,
     forceBuffer,
   ]);
 

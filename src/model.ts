@@ -1,5 +1,5 @@
 const width = 0.05;
-const height = 0.8;
+const height = 1;
 const size = 0.0125;
 
 const segmentsX = Math.floor(width / size);
@@ -42,6 +42,6 @@ export const boundary = (time: number) =>
     const a = time / 2000 + (2 * (i * Math.PI)) / length;
     return {
       normal: [Math.cos(a), Math.sin(a)],
-      offset: -0.5,
+      offset: -10.0,
     };
   });
