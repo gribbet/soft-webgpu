@@ -29,9 +29,6 @@ export const createRenderPipeline = async ({
       entryPoint: "fragment",
       targets: [{ format }],
     },
-    primitive: {
-      topology: "line-list",
-    },
     multisample: {
       count: 4,
     },
@@ -46,7 +43,7 @@ export const createRenderPipeline = async ({
   const encode = (pass: GPURenderPassEncoder) => {
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.draw(6, triangles.length, 0, 0);
+    pass.draw(3, triangles.length, 0, 0);
   };
 
   return {

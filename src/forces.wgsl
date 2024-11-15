@@ -5,7 +5,7 @@
 @group(0) @binding(4) var<storage, read_write> forces: array<vec2<f32>>;
 
 const stiffness = 100.0;
-const damping = 100.0;
+const damping = 20.0;
 const n = 8u;
 const epsilon = 1e-4;
  
