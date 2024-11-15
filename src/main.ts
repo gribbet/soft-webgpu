@@ -8,7 +8,6 @@ import { createRenderer } from "./renderer";
 /*
  Deployment
  Fix collision
- Split boundary
  */
 
 const init = async () => {

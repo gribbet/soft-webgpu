@@ -1,3 +1,4 @@
+import { createBoundaryPipeline } from "./boundary";
 import { adjacencyData, positionData } from "./data";
 import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
@@ -57,8 +58,13 @@ export const createComputer = async ({
     anchorBuffer,
     positionBuffer,
     previousBuffer,
-    boundaryBuffer,
     forceBuffer,
+  });
+  const boundaryPipeline = await createBoundaryPipeline({
+    device,
+    positionBuffer,
+    previousBuffer,
+    boundaryBuffer,
   });
 
   const compute = (delta: number) => {
@@ -69,6 +75,7 @@ export const createComputer = async ({
     for (let i = 0; i < steps; i++) {
       forcesPipeline.encode(encoder);
       integratePipeline.encode(encoder);
+      boundaryPipeline.encode(encoder);
     }
 
     device.queue.submit([encoder.finish()]);

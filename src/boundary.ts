@@ -1,32 +1,20 @@
 import { workgroupSize } from "./configuration";
-import { bindGroupFromBuffers, createBuffer } from "./device";
-import { positions, size } from "./model";
+import { bindGroupFromBuffers } from "./device";
+import { positions } from "./model";
 
-export const createIntegratePipeline = async ({
+export const createBoundaryPipeline = async ({
   device,
-  deltaBuffer,
-  selectedBuffer,
-  anchorBuffer,
   positionBuffer,
   previousBuffer,
-  forceBuffer,
+  boundaryBuffer,
 }: {
   device: GPUDevice;
-  deltaBuffer: GPUBuffer;
-  selectedBuffer: GPUBuffer;
-  anchorBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
   previousBuffer: GPUBuffer;
-  forceBuffer: GPUBuffer;
+  boundaryBuffer: GPUBuffer;
 }) => {
-  const sizeBuffer = createBuffer(
-    device,
-    GPUBufferUsage.UNIFORM,
-    new Float32Array([size]),
-  );
-
   const module = device.createShaderModule({
-    code: await (await fetch("integrate.wgsl")).text(),
+    code: await (await fetch("boundary.wgsl")).text(),
   });
 
   const pipeline = device.createComputePipeline({
@@ -38,13 +26,9 @@ export const createIntegratePipeline = async ({
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
-    sizeBuffer,
-    deltaBuffer,
-    selectedBuffer,
-    anchorBuffer,
+    boundaryBuffer,
     positionBuffer,
     previousBuffer,
-    forceBuffer,
   ]);
 
   const encode = (encoder: GPUCommandEncoder) => {
