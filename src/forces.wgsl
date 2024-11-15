@@ -5,9 +5,9 @@
 @group(0) @binding(4) var<storage, read> previouses: array<vec2<f32>>;
 @group(0) @binding(5) var<storage, read_write> forces: array<vec2<f32>>;
 
-const stiffness = 100.0;
-const damping = 100.0;
-const n = 8u;
+const stiffness = 1000.0;
+const damping = 1000.0;
+const n = 16u;
 const epsilon = 1e-4;
  
 const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);

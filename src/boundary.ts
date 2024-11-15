@@ -1,14 +1,15 @@
 import { workgroupSize } from "./configuration";
 import { bindGroupFromBuffers } from "./device";
-import { positions } from "./model";
 
 export const createBoundaryPipeline = async ({
   device,
+  vertexCount,
   positionBuffer,
   previousBuffer,
   boundaryBuffer,
 }: {
   device: GPUDevice;
+  vertexCount: number;
   positionBuffer: GPUBuffer;
   previousBuffer: GPUBuffer;
   boundaryBuffer: GPUBuffer;
@@ -39,7 +40,7 @@ export const createBoundaryPipeline = async ({
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
 
-    const workgroupCount = Math.ceil(positions.length / workgroupSize);
+    const workgroupCount = Math.ceil(vertexCount / workgroupSize);
     pass.dispatchWorkgroups(workgroupCount);
 
     pass.end();

@@ -2,15 +2,18 @@ import { createPickPipeline } from "./pick";
 
 export const createPicker = async ({
   device,
+  vertexCount,
   aspectBuffer,
   positionBuffer,
 }: {
   device: GPUDevice;
+  vertexCount: number;
   aspectBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
 }) => {
   const pipeline = await createPickPipeline({
     device,
+    vertexCount,
     aspectBuffer,
     positionBuffer,
   });

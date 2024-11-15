@@ -1,5 +1,4 @@
 import { createBoundaryPipeline } from "./boundary";
-import { adjacencyData, positionData } from "./data";
 import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
@@ -8,15 +7,25 @@ const steps = 64;
 
 export const createComputer = async ({
   device,
+  vertexCount,
   selectedBuffer,
   anchorBuffer,
+  adjacencyBuffer,
   positionBuffer,
+  previousBuffer,
+  originalBuffer,
+  forceBuffer,
   boundaryBuffer,
 }: {
   device: GPUDevice;
+  vertexCount: number;
   selectedBuffer: GPUBuffer;
   anchorBuffer: GPUBuffer;
+  adjacencyBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
+  previousBuffer: GPUBuffer;
+  originalBuffer: GPUBuffer;
+  forceBuffer: GPUBuffer;
   boundaryBuffer: GPUBuffer;
 }) => {
   const deltaBuffer = createBuffer(
@@ -24,35 +33,23 @@ export const createComputer = async ({
     GPUBufferUsage.UNIFORM,
     new Float32Array([0]),
   );
-  const adjacencyBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    adjacencyData,
-  );
-  const previousBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    positionData,
-  );
-  const forceBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    positionData.map(() => 0),
-  );
 
   const setDelta = (_: number) =>
     device.queue.writeBuffer(deltaBuffer, 0, new Float32Array([_]));
 
   const forcesPipeline = await createForcesPipeline({
     device,
+    vertexCount,
     deltaBuffer,
     adjacencyBuffer,
     positionBuffer,
     previousBuffer,
+    originalBuffer,
     forceBuffer,
   });
   const integratePipeline = await createIntegratePipeline({
     device,
+    vertexCount,
     deltaBuffer,
     selectedBuffer,
     anchorBuffer,
@@ -62,6 +59,7 @@ export const createComputer = async ({
   });
   const boundaryPipeline = await createBoundaryPipeline({
     device,
+    vertexCount,
     positionBuffer,
     previousBuffer,
     boundaryBuffer,

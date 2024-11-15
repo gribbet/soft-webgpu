@@ -1,12 +1,13 @@
 import { bindGroupFromBuffers } from "./device";
-import { positions } from "./model";
 
 export const createPickPipeline = async ({
   device,
+  vertexCount,
   aspectBuffer,
   positionBuffer,
 }: {
   device: GPUDevice;
+  vertexCount: number;
   aspectBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
 }) => {
@@ -35,7 +36,7 @@ export const createPickPipeline = async ({
   const encode = (pass: GPURenderPassEncoder) => {
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.draw(6, positions.length, 0, 0);
+    pass.draw(6, vertexCount, 0, 0);
   };
 
   return {

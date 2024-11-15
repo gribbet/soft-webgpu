@@ -1,29 +1,25 @@
 import { workgroupSize } from "./configuration";
-import { positionData } from "./data";
-import { bindGroupFromBuffers, createBuffer } from "./device";
-import { positions } from "./model";
+import { bindGroupFromBuffers } from "./device";
 
 export const createForcesPipeline = async ({
   device,
+  vertexCount,
   deltaBuffer,
   adjacencyBuffer,
   positionBuffer,
   previousBuffer,
+  originalBuffer,
   forceBuffer,
 }: {
   device: GPUDevice;
+  vertexCount: number;
   deltaBuffer: GPUBuffer;
   adjacencyBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
   previousBuffer: GPUBuffer;
+  originalBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
-  const originalBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    positionData,
-  );
-
   const module = device.createShaderModule({
     code: await (await fetch(new URL("./forces.wgsl", import.meta.url))).text(),
   });
@@ -51,7 +47,7 @@ export const createForcesPipeline = async ({
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
 
-    const workgroupCount = Math.ceil(positions.length / workgroupSize);
+    const workgroupCount = Math.ceil(vertexCount / workgroupSize);
     pass.dispatchWorkgroups(workgroupCount);
 
     pass.end();

@@ -1,9 +1,9 @@
 import { workgroupSize } from "./configuration";
 import { bindGroupFromBuffers, createBuffer } from "./device";
-import { positions, size } from "./model";
 
 export const createIntegratePipeline = async ({
   device,
+  vertexCount,
   deltaBuffer,
   selectedBuffer,
   anchorBuffer,
@@ -12,6 +12,7 @@ export const createIntegratePipeline = async ({
   forceBuffer,
 }: {
   device: GPUDevice;
+  vertexCount: number;
   deltaBuffer: GPUBuffer;
   selectedBuffer: GPUBuffer;
   anchorBuffer: GPUBuffer;
@@ -22,8 +23,8 @@ export const createIntegratePipeline = async ({
   const sizeBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
-    new Float32Array([size]),
-  );
+    new Float32Array([0.05]),
+  ); // TODO:
 
   const module = device.createShaderModule({
     code: await (
@@ -55,7 +56,7 @@ export const createIntegratePipeline = async ({
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
 
-    const workgroupCount = Math.ceil(positions.length / workgroupSize);
+    const workgroupCount = Math.ceil(vertexCount / workgroupSize);
     pass.dispatchWorkgroups(workgroupCount);
 
     pass.end();

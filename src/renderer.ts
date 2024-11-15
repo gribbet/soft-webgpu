@@ -1,29 +1,25 @@
 import { createBackgroundPipeline } from "./background";
-import { triangleData } from "./data";
-import { createBuffer } from "./device";
 import { createRenderPipeline } from "./render";
 
 export const createRenderer = async ({
   device,
   context,
   format,
+  triangleCount,
   aspectBuffer,
-  boundaryBuffer,
+  triangleBuffer,
   positionBuffer,
+  boundaryBuffer,
 }: {
   device: GPUDevice;
   format: GPUTextureFormat;
   context: GPUCanvasContext;
+  triangleCount: number;
   aspectBuffer: GPUBuffer;
-  boundaryBuffer: GPUBuffer;
+  triangleBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
+  boundaryBuffer: GPUBuffer;
 }) => {
-  const triangleBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    triangleData,
-  );
-
   const backgroundPipeline = await createBackgroundPipeline({
     device,
     format,
@@ -32,6 +28,7 @@ export const createRenderer = async ({
   });
   const renderPipeline = await createRenderPipeline({
     device,
+    triangleCount,
     format,
     aspectBuffer,
     positionBuffer,
