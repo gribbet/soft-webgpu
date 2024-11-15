@@ -166,7 +166,7 @@ const init = async () => {
   const frame = (time: number) => {
     requestAnimationFrame(frame);
 
-    const interval = (time - (last ?? time)) / 10000;
+    const interval = (time - (last ?? time)) / 1000;
     last = time;
 
     if (interval === 0) return;

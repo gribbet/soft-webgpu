@@ -11,6 +11,7 @@ struct Boundary {
 };
 
 const damping = 0.0;
+const gravity = vec2(0, -10.0);
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
@@ -18,9 +19,10 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     var current = positions[i];
     let previous = previouses[i];
-    var force = forces[i];
+    let mass = size * size;
+    var force = forces[i] + gravity * mass;
 
-    var position = current + exp(-damping * time) * (current - previous) + force / size / size * time * time;
+    var position = current + exp(-damping * time) * (current - previous) + force / mass * time * time;
 
     for (var j = 0u; j < arrayLength(&boundaries); j++) {
         let boundary = boundaries[j];
