@@ -8,12 +8,13 @@ import {
 import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
-import { createPickPipeline } from "./pick";
+import { createPicker } from "./picker";
 import { createRenderPipeline } from "./render";
 
 /*
  Deployment
  Fix collision
+ Split boundary
  */
 
 const steps = 64;
@@ -117,26 +118,14 @@ const init = async () => {
     positionBuffer,
     triangleBuffer,
   });
-  const pickPipeline = await createPickPipeline({
-    device,
-    aspectBuffer,
-    positionBuffer,
-  });
+
+  const picker = await createPicker({ device, aspectBuffer, positionBuffer });
 
   let texture = device.createTexture({
     size: [1, 1],
     sampleCount: 4,
     format,
     usage: GPUTextureUsage.RENDER_ATTACHMENT,
-  });
-
-  let pickTexture = device.createTexture({
-    size: [1, 1],
-    format: "r32uint",
-    usage:
-      GPUTextureUsage.RENDER_ATTACHMENT |
-      GPUTextureUsage.STORAGE_BINDING |
-      GPUTextureUsage.COPY_SRC,
   });
 
   new ResizeObserver(([entry]) => {
@@ -151,42 +140,9 @@ const init = async () => {
       format,
       usage: GPUTextureUsage.RENDER_ATTACHMENT,
     });
-    pickTexture.destroy();
-    pickTexture = device.createTexture({
-      size: [width, height],
-      format: "r32uint",
-      usage:
-        GPUTextureUsage.RENDER_ATTACHMENT |
-        GPUTextureUsage.STORAGE_BINDING |
-        GPUTextureUsage.COPY_SRC,
-    });
+    picker.resize([width, height]);
     device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([aspect]));
   }).observe(canvas);
-
-  const pick = async ([x, y]: [number, number]) => {
-    const buffer = device.createBuffer({
-      size: Uint32Array.BYTES_PER_ELEMENT,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
-    });
-
-    const encoder = device.createCommandEncoder();
-    const view = pickTexture.createView();
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [{ view, loadOp: "clear", storeOp: "store" }],
-    });
-    pickPipeline.encode(pass);
-    pass.end();
-    encoder.copyTextureToBuffer(
-      { texture: pickTexture, origin: { x, y } },
-      { buffer },
-      { width: 1, height: 1, depthOrArrayLayers: 1 },
-    );
-    device.queue.submit([encoder.finish()]);
-    await buffer.mapAsync(GPUMapMode.READ);
-    const [index = 0] = new Uint32Array(buffer.getMappedRange());
-    buffer.destroy();
-    return index - 1;
-  };
 
   const project = ([x, y]: [number, number]) => {
     const { width, height } = canvas;
@@ -198,7 +154,7 @@ const init = async () => {
   };
 
   canvas.addEventListener("mousedown", async ({ x, y }) => {
-    const selected = await pick([x, y]);
+    const selected = await picker.pick([x, y]);
     queue.writeBuffer(selectedBuffer, 0, new Uint32Array([selected]));
     queue.writeBuffer(anchorBuffer, 0, new Float32Array(project([x, y])));
   });
@@ -224,12 +180,16 @@ const init = async () => {
     queue.writeBuffer(timeBuffer, 0, new Float32Array([interval / steps]));
     queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
 
-    const encoder = device.createCommandEncoder();
+    let encoder = device.createCommandEncoder();
 
     for (let i = 0; i < steps; i++) {
       forcesPipeline.encode(encoder);
       integratePipeline.encode(encoder);
     }
+
+    queue.submit([encoder.finish()]);
+
+    encoder = device.createCommandEncoder();
 
     const view = texture.createView();
     const resolveTarget = context.getCurrentTexture().createView();
