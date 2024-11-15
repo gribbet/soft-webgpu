@@ -11,7 +11,9 @@ export const createCollisionPipeline = async ({
   triangleBuffer: GPUBuffer;
 }) => {
   const module = device.createShaderModule({
-    code: await (await fetch("collision.wgsl")).text(),
+    code: await (
+      await fetch(new URL("./collision.wgsl", import.meta.url))
+    ).text(),
   });
 
   const pipeline = device.createComputePipeline({

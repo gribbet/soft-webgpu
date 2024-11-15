@@ -11,7 +11,7 @@ export const createPickPipeline = async ({
   positionBuffer: GPUBuffer;
 }) => {
   const module = device.createShaderModule({
-    code: await (await fetch("pick.wgsl")).text(),
+    code: await (await fetch(new URL("./pick.wgsl", import.meta.url))).text(),
   });
 
   const pipeline = device.createRenderPipeline({

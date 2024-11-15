@@ -25,7 +25,9 @@ export const createBackgroundPipeline = async ({
   );
 
   const module = device.createShaderModule({
-    code: await (await fetch("background.wgsl")).text(),
+    code: await (
+      await fetch(new URL("./background.wgsl", import.meta.url))
+    ).text(),
   });
 
   const pipeline = device.createRenderPipeline({

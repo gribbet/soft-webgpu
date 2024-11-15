@@ -15,7 +15,7 @@ export const createRenderPipeline = async ({
   triangleBuffer: GPUBuffer;
 }) => {
   const module = device.createShaderModule({
-    code: await (await fetch("render.wgsl")).text(),
+    code: await (await fetch(new URL("./render.wgsl", import.meta.url))).text(),
   });
 
   const pipeline = device.createRenderPipeline({

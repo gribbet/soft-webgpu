@@ -26,7 +26,9 @@ export const createIntegratePipeline = async ({
   );
 
   const module = device.createShaderModule({
-    code: await (await fetch("integrate.wgsl")).text(),
+    code: await (
+      await fetch(new URL("./integrate.wgsl", import.meta.url))
+    ).text(),
   });
 
   const pipeline = device.createComputePipeline({

@@ -25,7 +25,7 @@ export const createForcesPipeline = async ({
   );
 
   const module = device.createShaderModule({
-    code: await (await fetch("forces.wgsl")).text(),
+    code: await (await fetch(new URL("./forces.wgsl", import.meta.url))).text(),
   });
 
   const pipeline = device.createComputePipeline({

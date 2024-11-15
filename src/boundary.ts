@@ -14,7 +14,9 @@ export const createBoundaryPipeline = async ({
   boundaryBuffer: GPUBuffer;
 }) => {
   const module = device.createShaderModule({
-    code: await (await fetch("boundary.wgsl")).text(),
+    code: await (
+      await fetch(new URL("./boundary.wgsl", import.meta.url))
+    ).text(),
   });
 
   const pipeline = device.createComputePipeline({
