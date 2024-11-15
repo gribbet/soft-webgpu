@@ -1,5 +1,5 @@
 import { createComputer } from "./computer";
-import { boundaryData, positionData, triangleData } from "./data";
+import { boundaryData, positionData } from "./data";
 import { createBuffer } from "./device";
 import { boundaries, type Boundary } from "./model";
 import { createPicker } from "./picker";
@@ -48,11 +48,6 @@ const init = async () => {
     GPUBufferUsage.STORAGE,
     positionData,
   );
-  const triangleBuffer = createBuffer(
-    device,
-    GPUBufferUsage.STORAGE,
-    triangleData,
-  );
   const boundaryBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
@@ -82,7 +77,6 @@ const init = async () => {
     aspectBuffer,
     boundaryBuffer,
     positionBuffer,
-    triangleBuffer,
   });
   const picker = await createPicker({ device, aspectBuffer, positionBuffer });
 
