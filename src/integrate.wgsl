@@ -12,7 +12,7 @@ struct Boundary {
     offset: f32
 };
 
-const damping = 1.0;
+const damping = 0.0;
 const gravity = vec2(0, -10.0);
 const friction = 0.5;
 

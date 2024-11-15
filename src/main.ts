@@ -88,6 +88,7 @@ const init = async () => {
 
   const forcesPipeline = await createForcesPipeline({
     device,
+    timeBuffer,
     adjacencyBuffer,
     positionBuffer,
     previousBuffer,
@@ -198,7 +199,6 @@ const init = async () => {
 
   canvas.addEventListener("mousedown", async ({ x, y }) => {
     const selected = await pick([x, y]);
-    console.log(selected, project([x, y]));
     queue.writeBuffer(selectedBuffer, 0, new Uint32Array([selected]));
     queue.writeBuffer(anchorBuffer, 0, new Float32Array(project([x, y])));
   });
