@@ -1,6 +1,7 @@
 import { createComputer } from "./computer";
 import { boundaryData, positionData, triangleData } from "./data";
 import { createBuffer } from "./device";
+import { boundaries, type Boundary } from "./model";
 import { createPicker } from "./picker";
 import { createRenderer } from "./renderer";
 
@@ -55,7 +56,7 @@ const init = async () => {
   const boundaryBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
-    boundaryData(0),
+    boundaryData(boundaries(0)),
   );
 
   const setAspect = (_: number) =>
@@ -64,6 +65,8 @@ const init = async () => {
     queue.writeBuffer(selectedBuffer, 0, new Uint32Array([_]));
   const setAnchor = (_: [number, number]) =>
     queue.writeBuffer(anchorBuffer, 0, new Float32Array(_));
+  const setBoundaries = (_: Boundary[]) =>
+    queue.writeBuffer(boundaryBuffer, 0, boundaryData(_));
 
   const computer = await createComputer({
     device,
@@ -121,7 +124,7 @@ const init = async () => {
 
     if (delta === 0) return;
 
-    queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
+    setBoundaries(boundaries(time));
 
     computer.compute(delta);
     renderer.render();

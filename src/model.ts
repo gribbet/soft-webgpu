@@ -37,11 +37,16 @@ export const triangles = new Array(segmentsX).fill(0).flatMap((_, i) =>
   ),
 );
 
-export const boundary = (time: number) =>
+export type Boundary = {
+  normal: [number, number];
+  offset: number;
+};
+
+export const boundaries = (time: number) =>
   new Array(4).fill(0).map((_, i, { length }) => {
     const a = time / 2000 + (2 * (i * Math.PI)) / length;
     return {
       normal: [Math.cos(a), Math.sin(a)],
       offset: -0.5,
-    };
+    } satisfies Boundary;
   });
