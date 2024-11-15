@@ -1,9 +1,11 @@
 @group(0) @binding(0) var<uniform> size: f32;
 @group(0) @binding(1) var<uniform> time: f32;
-@group(0) @binding(2) var<storage, read> boundaries: array<Boundary>; 
-@group(0) @binding(3) var<storage, read_write> positions: array<vec2<f32>>;
-@group(0) @binding(4) var<storage, read_write> previouses: array<vec2<f32>>;
-@group(0) @binding(5) var<storage, read> forces: array<vec2<f32>>;
+@group(0) @binding(2) var<uniform> selected: u32;
+@group(0) @binding(3) var<uniform> anchor: vec2<f32>;
+@group(0) @binding(4) var<storage, read> boundaries: array<Boundary>; 
+@group(0) @binding(5) var<storage, read_write> positions: array<vec2<f32>>;
+@group(0) @binding(6) var<storage, read_write> previouses: array<vec2<f32>>;
+@group(0) @binding(7) var<storage, read> forces: array<vec2<f32>>;
 
 struct Boundary {
     normal: vec2<f32>,
@@ -38,6 +40,11 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
         if (distance < 0) {
             current -= distance2 * normal;
         }
+    }
+
+    if i == selected {
+        position = anchor;
+        current = anchor;
     }
 
     previouses[i] = current;

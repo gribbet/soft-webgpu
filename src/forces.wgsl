@@ -1,10 +1,8 @@
-@group(0) @binding(0) var<uniform> selected: u32;
-@group(0) @binding(1) var<uniform> anchor: vec2<f32>;
-@group(0) @binding(2) var<storage, read> adjacencies: array<array<array<u32, 2>, n>>;
-@group(0) @binding(3) var<storage, read> originals: array<vec2<f32>>;
-@group(0) @binding(4) var<storage, read> positions: array<vec2<f32>>;
-@group(0) @binding(5) var<storage, read> previouses: array<vec2<f32>>;
-@group(0) @binding(6) var<storage, read_write> forces: array<vec2<f32>>;
+@group(0) @binding(0) var<storage, read> adjacencies: array<array<array<u32, 2>, n>>;
+@group(0) @binding(1) var<storage, read> originals: array<vec2<f32>>;
+@group(0) @binding(2) var<storage, read> positions: array<vec2<f32>>;
+@group(0) @binding(3) var<storage, read> previouses: array<vec2<f32>>;
+@group(0) @binding(4) var<storage, read_write> forces: array<vec2<f32>>;
 
 const stiffness = 100.0;
 const damping = 100.0;
@@ -17,16 +15,7 @@ const invalid = mat2x2<f32>();
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
-
-    var force = vec2<f32>();
-
-    force += body_forces(i);
-
-    if (i == selected) {
-        force += 100.0 * (anchor - positions[i]);
-    }
-
-    forces[i] = force;
+    forces[i] = body_forces(i);;
 }
 
 
