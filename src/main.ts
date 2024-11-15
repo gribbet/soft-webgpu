@@ -1,4 +1,3 @@
-import { createBackgroundPipeline } from "./background";
 import {
   adjacencyData,
   boundaryData,
@@ -9,7 +8,7 @@ import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
 import { createPicker } from "./picker";
-import { createRenderPipeline } from "./render";
+import { createRenderer } from "./renderer";
 
 /*
  Deployment
@@ -105,41 +104,24 @@ const init = async () => {
     boundaryBuffer,
     forceBuffer,
   });
-  const backgroundPipeline = await createBackgroundPipeline({
+
+  const renderer = await createRenderer({
     device,
+    context,
     format,
     aspectBuffer,
     boundaryBuffer,
-  });
-  const renderPipeline = await createRenderPipeline({
-    device,
-    format,
-    aspectBuffer,
     positionBuffer,
     triangleBuffer,
   });
-
   const picker = await createPicker({ device, aspectBuffer, positionBuffer });
-
-  let texture = device.createTexture({
-    size: [1, 1],
-    sampleCount: 4,
-    format,
-    usage: GPUTextureUsage.RENDER_ATTACHMENT,
-  });
 
   new ResizeObserver(([entry]) => {
     const { width = 0, height = 0 } = entry?.contentRect ?? {};
     canvas.width = width * devicePixelRatio;
     canvas.height = height * devicePixelRatio;
     const aspect = width / height;
-    texture.destroy();
-    texture = device.createTexture({
-      size: [width * devicePixelRatio, height * devicePixelRatio],
-      sampleCount: 4,
-      format,
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
-    });
+    renderer.resize([width, height]);
     picker.resize([width, height]);
     device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([aspect]));
   }).observe(canvas);
@@ -180,7 +162,7 @@ const init = async () => {
     queue.writeBuffer(timeBuffer, 0, new Float32Array([interval / steps]));
     queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
 
-    let encoder = device.createCommandEncoder();
+    const encoder = device.createCommandEncoder();
 
     for (let i = 0; i < steps; i++) {
       forcesPipeline.encode(encoder);
@@ -189,20 +171,7 @@ const init = async () => {
 
     queue.submit([encoder.finish()]);
 
-    encoder = device.createCommandEncoder();
-
-    const view = texture.createView();
-    const resolveTarget = context.getCurrentTexture().createView();
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [
-        { view, resolveTarget, loadOp: "clear", storeOp: "discard" },
-      ],
-    });
-    backgroundPipeline.encode(pass);
-    renderPipeline.encode(pass);
-    pass.end();
-
-    queue.submit([encoder.finish()]);
+    renderer.render();
   };
 
   requestAnimationFrame(frame);
