@@ -18,7 +18,7 @@ export const createBackgroundPipeline = async ({
   aspectBuffer: GPUBuffer;
   boundaryBuffer: GPUBuffer;
 }) => {
-  const positionBuffer = createBuffer(
+  const cornerBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
     new Float32Array(corners.flat()),
@@ -49,7 +49,7 @@ export const createBackgroundPipeline = async ({
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
     aspectBuffer,
-    positionBuffer,
+    cornerBuffer,
     boundaryBuffer,
   ]);
 

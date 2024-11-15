@@ -19,7 +19,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     forces[i] = body_forces(i);;
 }
 
-
 fn body_forces(i: u32) -> vec2<f32> {
     var force = vec2<f32>(0, 0);
     let adjacency = adjacencies[i];
@@ -70,38 +69,6 @@ fn body_force(i: u32, j: u32, k: u32) -> vec2<f32> {
     return (rotation * stress - (exp(-damping * delta) - 1.0) * strain_rate) * (r1 + r2 - 2 * r0);
 }
 
-fn is_invalid(m: mat2x2<f32>) -> bool {
-    return invalid[0][0] == m[0][0] 
-        && invalid[1][0] == m[1][0]
-        && invalid[0][1] == m[0][1]
-        && invalid[1][1] == m[1][1];
-}
-
-fn inverse(m: mat2x2<f32>) -> mat2x2<f32> {
-    let det = determinant(m);
-    if det < epsilon { return invalid; }
-    return mat2x2<f32>(
-        m[1][1] / det, -m[0][1] / det,
-       -m[1][0] / det,  m[0][0] / det
-    );
-}
-
-fn determinant(m: mat2x2<f32>) -> f32 {
-    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
-}
-
-// Newton-Schulz
-fn mat2x2_sqrt2(m: mat2x2<f32>) -> mat2x2<f32> {
-    var y = m;
-    var z = identity;
-    for (var i = 0; i < 10; i++) {
-        let residual = identity - y * z;
-        y *= identity + 0.5 * residual;
-        z *= identity + 0.5 * residual;
-    }
-    return y;
-}
-
 fn mat2x2_sqrt(m: mat2x2<f32>) -> mat2x2<f32> {
     let trace = m[0][0] + m[1][1];
     let det = m[0][0] * m[1][1] - m[0][1] * m[1][0];
@@ -139,4 +106,24 @@ fn mat2x2_sqrt(m: mat2x2<f32>) -> mat2x2<f32> {
 
 fn perp(v: vec2<f32>) -> vec2<f32> {
     return vec2(-v.y, v.x);
+}
+
+fn determinant(m: mat2x2<f32>) -> f32 {
+    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+}
+
+fn inverse(m: mat2x2<f32>) -> mat2x2<f32> {
+    let det = determinant(m);
+    if det < epsilon { return invalid; }
+    return mat2x2<f32>(
+        m[1][1] / det, -m[0][1] / det,
+       -m[1][0] / det,  m[0][0] / det
+    );
+}
+
+fn is_invalid(m: mat2x2<f32>) -> bool {
+    return invalid[0][0] == m[0][0] 
+        && invalid[1][0] == m[1][0]
+        && invalid[0][1] == m[0][1]
+        && invalid[1][1] == m[1][1];
 }
