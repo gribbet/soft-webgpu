@@ -8,7 +8,7 @@
 const stiffness = 1000.0;
 const damping = 1000.0;
 const n = 16u;
-const epsilon = 1e-4;
+const epsilon = 1e-6;
  
 const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);
 const invalid = mat2x2<f32>();

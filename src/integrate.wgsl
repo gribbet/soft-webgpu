@@ -1,14 +1,14 @@
-@group(0) @binding(0) var<uniform> size: f32;
-@group(0) @binding(1) var<uniform> delta: f32;
-@group(0) @binding(2) var<uniform> selected: u32;
-@group(0) @binding(3) var<uniform> anchor: vec2<f32>;
-@group(0) @binding(4) var<storage, read_write> positions: array<vec2<f32>>;
-@group(0) @binding(5) var<storage, read_write> previouses: array<vec2<f32>>;
-@group(0) @binding(6) var<storage, read> forces: array<vec2<f32>>;
+@group(0) @binding(0) var<uniform> delta: f32;
+@group(0) @binding(1) var<uniform> selected: u32;
+@group(0) @binding(2) var<uniform> anchor: vec2<f32>;
+@group(0) @binding(3) var<storage, read_write> positions: array<vec2<f32>>;
+@group(0) @binding(4) var<storage, read_write> previouses: array<vec2<f32>>;
+@group(0) @binding(5) var<storage, read> forces: array<vec2<f32>>;
 
 
 const damping = 0.0;
 const gravity = vec2(0, -10.0);
+const size = 0.04;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {

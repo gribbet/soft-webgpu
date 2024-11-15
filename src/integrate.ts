@@ -1,5 +1,5 @@
 import { workgroupSize } from "./configuration";
-import { bindGroupFromBuffers, createBuffer } from "./device";
+import { bindGroupFromBuffers } from "./device";
 
 export const createIntegratePipeline = async ({
   device,
@@ -20,12 +20,6 @@ export const createIntegratePipeline = async ({
   previousBuffer: GPUBuffer;
   forceBuffer: GPUBuffer;
 }) => {
-  const sizeBuffer = createBuffer(
-    device,
-    GPUBufferUsage.UNIFORM,
-    new Float32Array([0.05]),
-  ); // TODO:
-
   const module = device.createShaderModule({
     code: await (
       await fetch(new URL("./integrate.wgsl", import.meta.url))
@@ -41,7 +35,6 @@ export const createIntegratePipeline = async ({
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
-    sizeBuffer,
     deltaBuffer,
     selectedBuffer,
     anchorBuffer,

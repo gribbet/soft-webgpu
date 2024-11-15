@@ -32,7 +32,7 @@ export const createApp = async () => {
   const aspectBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
-    new Float32Array([1.0]),
+    new Float32Array([1]),
   );
   const selectedBuffer = createBuffer(
     device,
@@ -84,12 +84,7 @@ export const createApp = async () => {
     device,
     GPUBufferUsage.STORAGE,
     new Float32Array(
-      boundaries.flatMap(({ normal: [nx = 0, ny = 0], offset }) => [
-        nx,
-        ny,
-        offset,
-        0,
-      ]),
+      boundaries.flatMap(({ normal: [nx, ny], offset }) => [nx, ny, offset, 0]),
     ),
   );
 
