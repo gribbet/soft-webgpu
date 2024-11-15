@@ -16,7 +16,7 @@ fn vertex(
     @builtin(vertex_index) v: u32,
     @builtin(instance_index) i: u32
 ) -> Output {
-    let position = (positions[i] + vertices[v] * 0.01) * vec2(1.0, aspect);
+    let position = (positions[i] + vertices[v] * 0.02) * vec2(1.0, aspect);
     return Output(vec4(position, 0, 1.0), i);
 }
 
