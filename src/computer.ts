@@ -7,19 +7,22 @@ const steps = 64;
 
 export const createComputer = async ({
   device,
-  timeBuffer,
   selectedBuffer,
   anchorBuffer,
   positionBuffer,
   boundaryBuffer,
 }: {
   device: GPUDevice;
-  timeBuffer: GPUBuffer;
   selectedBuffer: GPUBuffer;
   anchorBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
   boundaryBuffer: GPUBuffer;
 }) => {
+  const deltaBuffer = createBuffer(
+    device,
+    GPUBufferUsage.UNIFORM,
+    new Float32Array([0]),
+  );
   const adjacencyBuffer = createBuffer(
     device,
     GPUBufferUsage.STORAGE,
@@ -36,9 +39,12 @@ export const createComputer = async ({
     positionData.map(() => 0),
   );
 
+  const setDelta = (_: number) =>
+    device.queue.writeBuffer(deltaBuffer, 0, new Float32Array([_]));
+
   const forcesPipeline = await createForcesPipeline({
     device,
-    timeBuffer,
+    deltaBuffer,
     adjacencyBuffer,
     positionBuffer,
     previousBuffer,
@@ -46,7 +52,7 @@ export const createComputer = async ({
   });
   const integratePipeline = await createIntegratePipeline({
     device,
-    timeBuffer,
+    deltaBuffer,
     selectedBuffer,
     anchorBuffer,
     positionBuffer,
@@ -55,7 +61,9 @@ export const createComputer = async ({
     forceBuffer,
   });
 
-  const compute = () => {
+  const compute = (delta: number) => {
+    setDelta(delta / steps);
+
     const encoder = device.createCommandEncoder();
 
     for (let i = 0; i < steps; i++) {

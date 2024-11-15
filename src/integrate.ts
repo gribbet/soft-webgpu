@@ -4,7 +4,7 @@ import { positions, size } from "./model";
 
 export const createIntegratePipeline = async ({
   device,
-  timeBuffer,
+  deltaBuffer,
   selectedBuffer,
   anchorBuffer,
   positionBuffer,
@@ -13,7 +13,7 @@ export const createIntegratePipeline = async ({
   forceBuffer,
 }: {
   device: GPUDevice;
-  timeBuffer: GPUBuffer;
+  deltaBuffer: GPUBuffer;
   selectedBuffer: GPUBuffer;
   anchorBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
@@ -40,7 +40,7 @@ export const createIntegratePipeline = async ({
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
     sizeBuffer,
-    timeBuffer,
+    deltaBuffer,
     selectedBuffer,
     anchorBuffer,
     boundaryBuffer,

@@ -1,4 +1,4 @@
-@group(0) @binding(0) var<uniform> time: f32;
+@group(0) @binding(0) var<uniform> delta: f32;
 @group(0) @binding(1) var<storage, read> adjacencies: array<array<array<u32, 2>, n>>;
 @group(0) @binding(2) var<storage, read> originals: array<vec2<f32>>;
 @group(0) @binding(3) var<storage, read> positions: array<vec2<f32>>;
@@ -61,13 +61,13 @@ fn body_force(i: u32, j: u32, k: u32) -> vec2<f32> {
     let strain = scale_shear - identity;
     var stress = stiffness * strain;
 
-    let v0 = (p0 - q0) / time;
-    let v1 = (p1 - q1) / time;
-    let v2 = (p2 - q2) / time;
+    let v0 = (p0 - q0) / delta;
+    let v1 = (p1 - q1) / delta;
+    let v2 = (p2 - q2) / delta;
 
     let strain_rate = mat2x2<f32>(v1 - v0, v2 - v0) * inverse(mat2x2(r1 - r0, r2 - r0));
 
-    return (rotation * stress - (exp(-damping * time) - 1.0) * strain_rate) * (r1 + r2 - 2 * r0);
+    return (rotation * stress - (exp(-damping * delta) - 1.0) * strain_rate) * (r1 + r2 - 2 * r0);
 }
 
 fn is_invalid(m: mat2x2<f32>) -> bool {

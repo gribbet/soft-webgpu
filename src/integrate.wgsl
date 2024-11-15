@@ -1,5 +1,5 @@
 @group(0) @binding(0) var<uniform> size: f32;
-@group(0) @binding(1) var<uniform> time: f32;
+@group(0) @binding(1) var<uniform> delta: f32;
 @group(0) @binding(2) var<uniform> selected: u32;
 @group(0) @binding(3) var<uniform> anchor: vec2<f32>;
 @group(0) @binding(4) var<storage, read> boundaries: array<Boundary>; 
@@ -25,7 +25,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let mass = size * size;
     var force = forces[i] + gravity * mass;
 
-    var position = current + exp(-damping * time) * (current - previous) + force / mass * time * time;
+    var position = current + exp(-damping * delta) * (current - previous) + force / mass * delta * delta;
 
     for (var j = 0u; j < arrayLength(&boundaries); j++) {
         let boundary = boundaries[j];

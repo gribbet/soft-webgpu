@@ -5,14 +5,14 @@ import { positions } from "./model";
 
 export const createForcesPipeline = async ({
   device,
-  timeBuffer,
+  deltaBuffer,
   adjacencyBuffer,
   positionBuffer,
   previousBuffer,
   forceBuffer,
 }: {
   device: GPUDevice;
-  timeBuffer: GPUBuffer;
+  deltaBuffer: GPUBuffer;
   adjacencyBuffer: GPUBuffer;
   positionBuffer: GPUBuffer;
   previousBuffer: GPUBuffer;
@@ -37,7 +37,7 @@ export const createForcesPipeline = async ({
   });
 
   const bindGroup = bindGroupFromBuffers(device, pipeline, [
-    timeBuffer,
+    deltaBuffer,
     adjacencyBuffer,
     originalBuffer,
     positionBuffer,

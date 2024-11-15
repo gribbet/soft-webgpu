@@ -10,8 +10,6 @@ import { createRenderer } from "./renderer";
  Split boundary
  */
 
-const steps = 64;
-
 const init = async () => {
   const { gpu } = navigator;
   const adapter = await gpu.requestAdapter();
@@ -29,10 +27,10 @@ const init = async () => {
   const format = gpu.getPreferredCanvasFormat();
   context.configure({ device, format });
 
-  const timeBuffer = createBuffer(
+  const aspectBuffer = createBuffer(
     device,
     GPUBufferUsage.UNIFORM,
-    new Float32Array([0]),
+    new Float32Array([1.0]),
   );
   const selectedBuffer = createBuffer(
     device,
@@ -43,11 +41,6 @@ const init = async () => {
     device,
     GPUBufferUsage.UNIFORM,
     new Float32Array([0, 0]),
-  );
-  const aspectBuffer = createBuffer(
-    device,
-    GPUBufferUsage.UNIFORM,
-    new Float32Array([1.0]),
   );
   const positionBuffer = createBuffer(
     device,
@@ -65,9 +58,15 @@ const init = async () => {
     boundaryData(0),
   );
 
+  const setAspect = (_: number) =>
+    queue.writeBuffer(aspectBuffer, 0, new Float32Array([_]));
+  const setSelected = (_: number) =>
+    queue.writeBuffer(selectedBuffer, 0, new Uint32Array([_]));
+  const setAnchor = (_: [number, number]) =>
+    queue.writeBuffer(anchorBuffer, 0, new Float32Array(_));
+
   const computer = await createComputer({
     device,
-    timeBuffer,
     selectedBuffer,
     anchorBuffer,
     positionBuffer,
@@ -88,10 +87,9 @@ const init = async () => {
     const { width = 0, height = 0 } = entry?.contentRect ?? {};
     canvas.width = width * devicePixelRatio;
     canvas.height = height * devicePixelRatio;
-    const aspect = width / height;
     renderer.resize([width, height]);
     picker.resize([width, height]);
-    device.queue.writeBuffer(aspectBuffer, 0, new Float32Array([aspect]));
+    setAspect(width / height);
   }).observe(canvas);
 
   const project = ([x, y]: [number, number]) => {
@@ -100,37 +98,32 @@ const init = async () => {
     return [
       2 * (x / (width / devicePixelRatio)) - 1,
       (1 - 2 * (y / (height / devicePixelRatio))) / aspect,
-    ];
+    ] satisfies [number, number];
   };
 
   canvas.addEventListener("mousedown", async ({ x, y }) => {
     const selected = await picker.pick([x, y]);
-    queue.writeBuffer(selectedBuffer, 0, new Uint32Array([selected]));
-    queue.writeBuffer(anchorBuffer, 0, new Float32Array(project([x, y])));
+    setSelected(selected);
+    setAnchor(project([x, y]));
   });
-
   canvas.addEventListener("mousemove", ({ x, y, buttons }) => {
     if (buttons === 0) return;
-    queue.writeBuffer(anchorBuffer, 0, new Float32Array(project([x, y])));
+    setAnchor(project([x, y]));
   });
-
-  canvas.addEventListener("mouseup", () =>
-    queue.writeBuffer(selectedBuffer, 0, new Uint32Array([-1])),
-  );
+  canvas.addEventListener("mouseup", () => setSelected(-1));
 
   let last: number | undefined;
   const frame = (time: number) => {
     requestAnimationFrame(frame);
 
-    const interval = (time - (last ?? time)) / 1000;
+    const delta = (time - (last ?? time)) / 1000;
     last = time;
 
-    if (interval === 0) return;
+    if (delta === 0) return;
 
-    queue.writeBuffer(timeBuffer, 0, new Float32Array([interval / steps]));
     queue.writeBuffer(boundaryBuffer, 0, boundaryData(time));
 
-    computer.compute();
+    computer.compute(delta);
     renderer.render();
   };
 
