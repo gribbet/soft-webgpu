@@ -6,7 +6,7 @@
 @group(0) @binding(5) var<storage, read_write> forces: array<vec2<f32>>;
 
 const stiffness = 1000.0;
-const damping = 1000.0;
+const damping = 0.25;
 const n = 16u;
 const epsilon = 1e-6;
  
@@ -66,7 +66,7 @@ fn body_force(i: u32, j: u32, k: u32) -> vec2<f32> {
 
     let strain_rate = mat2x2<f32>(v1 - v0, v2 - v0) * inverse(mat2x2(r1 - r0, r2 - r0));
 
-    return (rotation * stress - (exp(-damping * delta) - 1.0) * strain_rate) * (r1 + r2 - 2 * r0);
+    return (rotation * stress + damping  * strain_rate) * (r1 + r2 - 2 * r0);
 }
 
 fn mat2x2_sqrt(m: mat2x2<f32>) -> mat2x2<f32> {

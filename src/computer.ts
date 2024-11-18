@@ -3,7 +3,7 @@ import { createBuffer } from "./device";
 import { createForcesPipeline } from "./forces";
 import { createIntegratePipeline } from "./integrate";
 
-const steps = 64;
+const steps = 256;
 
 export const createComputer = async ({
   device,
