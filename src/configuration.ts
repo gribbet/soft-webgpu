@@ -1,2 +1,2 @@
-export const workgroupSize = 64;
+export const workgroupSize = 256;
 export const n = 16;

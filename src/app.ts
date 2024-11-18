@@ -157,8 +157,10 @@ export const createApp = async () => {
   const frame = (time: number) => {
     requestAnimationFrame(frame);
 
-    const delta = (time - (last ?? time)) / 1000;
+    let delta = (time - (last ?? time)) / 1000;
     last = time;
+
+    delta = Math.min(delta, 0.016);
 
     if (delta === 0) return;
 

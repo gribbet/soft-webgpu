@@ -13,7 +13,7 @@ const epsilon = 1e-6;
 const identity = mat2x2<f32>(1.0, 0.0, 0.0, 1.0);
 const invalid = mat2x2<f32>();
 
-@compute @workgroup_size(64)
+@compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let i = global_id.x;
     forces[i] = body_forces(i);;
