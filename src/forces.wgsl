@@ -46,7 +46,8 @@ fn body_force(i: u32, j: u32, k: u32) -> vec2<f32> {
     let r1 = originals[j];
     let r2 = originals[k];
 
-    let deformation = mat2x2(p1 - p0, p2 - p0) * inverse(mat2x2(r1 - r0, r2 - r0));
+    let inverse_original = inverse(mat2x2(r1 - r0, r2 - r0));
+    let deformation = mat2x2(p1 - p0, p2 - p0) * inverse_original;
     var scale_shear = mat2x2_sqrt(transpose(deformation) * deformation);
     if is_invalid(scale_shear) || is_invalid(inverse(scale_shear)) {
         return vec2<f32>();
@@ -64,9 +65,9 @@ fn body_force(i: u32, j: u32, k: u32) -> vec2<f32> {
     let v1 = (p1 - q1) / delta;
     let v2 = (p2 - q2) / delta;
 
-    let strain_rate = mat2x2<f32>(v1 - v0, v2 - v0) * inverse(mat2x2(r1 - r0, r2 - r0));
+    let strain_rate = mat2x2<f32>(v1 - v0, v2 - v0) * inverse_original;
 
-    return (rotation * stress + damping  * strain_rate) * (r1 + r2 - 2 * r0);
+    return (rotation * stress + damping * strain_rate) * (r1 + r2 - 2 * r0);
 }
 
 fn mat2x2_sqrt(m: mat2x2<f32>) -> mat2x2<f32> {
